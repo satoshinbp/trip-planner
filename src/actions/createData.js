@@ -1,0 +1,1 @@
+export const createTripData = (id, title, startDate, endDate, location) => ({ id, title, startDate, endDate, location })
