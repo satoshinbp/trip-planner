@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
+import { useRouter } from 'next/router'
 import { format, isAfter, isBefore, isEqual } from 'date-fns'
 import { makeStyles } from '@material-ui/core/styles'
+import Grid from '@material-ui/core/Grid'
+import Hidden from '@material-ui/core/Hidden'
+import IconButton from '@material-ui/core/IconButton'
+import Paper from '@material-ui/core/Paper'
 import Table from '@material-ui/core/Table'
 import TableBody from '@material-ui/core/TableBody'
 import TableCell from '@material-ui/core/TableCell'
@@ -8,38 +13,35 @@ import TableContainer from '@material-ui/core/TableContainer'
 import TableHead from '@material-ui/core/TableHead'
 import TableRow from '@material-ui/core/TableRow'
 import TableSortLabel from '@material-ui/core/TableSortLabel'
-import Paper from '@material-ui/core/Paper'
-import Hidden from '@material-ui/core/Hidden'
-import Grid from '@material-ui/core/Grid'
-import IconButton from '@material-ui/core/IconButton'
 import EditIcon from '@material-ui/icons/Edit'
 import DeleteIcon from '@material-ui/icons/Delete'
 import db from '../lib/db'
+import firebase from '../lib/firebase'
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
-    return -1;
+    return -1
   }
   if (b[orderBy] > a[orderBy]) {
-    return 1;
+    return 1
   }
-  return 0;
+  return 0
 }
 
 function getComparator(order, orderBy) {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
+    : (a, b) => -descendingComparator(a, b, orderBy)
 }
 
 function stableSort(array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
+  const stabilizedThis = array.map((el, index) => [el, index])
   stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
+    const order = comparator(a[0], b[0])
+    if (order !== 0) return order
+    return a[1] - b[1]
+  })
+  return stabilizedThis.map(el => el[0])
 }
 
 const useStyles = makeStyles(theme => ({
@@ -53,11 +55,6 @@ const useStyles = makeStyles(theme => ({
       fontWeight: 'bold',
     },
   },
-  editIconBtn: {
-    [theme.breakpoints.down("xs")]: {
-      marginLeft: -8,
-    },
-  },
   visuallyHidden: {
     border: 0,
     clip: 'rect(0 0 0 0)',
@@ -69,13 +66,25 @@ const useStyles = makeStyles(theme => ({
     top: 20,
     width: 1,
   },
+  actionsCell: {
+    width: 120,
+  },
+  link: {
+    cursor: 'pointer',
+  },
 }))
 
 export default props => {
   const classes = useStyles()
-  const { user, filter, trips, setTrips, setOpen, setTitle, setStartDate, setEndDate, setLocation, editID, setEditID } = props
+  const router = useRouter()
+
+  const { trips, setTrips, filter, setAction, setNewTrip, setIsLoading } = props
+
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState('startDate')
+
+  const user = firebase.auth().currentUser
+  const tripsRef = db.collection('users').doc(user.uid).collection('trips')
 
   const handleRequestSort = (e, property) => {
     const isAsc = orderBy === property && order === 'asc'
@@ -87,29 +96,29 @@ export default props => {
     handleRequestSort(e, property)
   }
 
-  const handleEdit = id => {
-    const trip = trips.filter(trip => trip.id === id)[0]
-    setEditID(id)
-    setOpen('edit')
-    setTitle(trip.title)
-    setStartDate(new Date(trip.startDate))
-    setEndDate(new Date(trip.endDate))
-    setLocation(trip.location)
+  const handleEdit = id => () => {
+    const { title, startDate, endDate, location, note } = trips.filter(trip => trip.id === id)[0]
+    setAction({ name: 'edit', id })
+    setNewTrip({ title, startDate, endDate, location, note })
   }
 
-  const handleDelete = id => {
-    const tripsRef = db.collection('users').doc(user.uid).collection('trips')
+  const handleDelete = id => () => {
+    setIsLoading({ deep: false, shallow: true })
+
     tripsRef.doc(id).delete().then(snapshot => {
       setTrips(trips.filter(trip => trip.id !== id))
+      setIsLoading({ deep: false, shallow: false })
     })
   }
 
+  const linkToTripPage = id => () => router.push('/trip/[tid]', `/trip/${id}`)
+
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.table} aria-label="table">
+      <Table className={classes.table}>
         <TableHead>
           <TableRow>
-            <TableCell>Actions</TableCell>
+            <TableCell className={classes.actionsCell}>Actions</TableCell>
             <TableCell>
               <TableSortLabel
                 active={orderBy === 'title'}
@@ -166,67 +175,64 @@ export default props => {
                       {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                     </span>
                   ) : null}
-                </TableSortLabel></TableCell>
+                </TableSortLabel>
+              </TableCell>
             </Hidden>
           </TableRow>
         </TableHead>
+
         <TableBody>
-          {
-            stableSort(trips, getComparator(order, orderBy)).filter(trip => {
-              let today = new Date()
-              today.setHours(0, 0, 0, 0)
-              switch (filter) {
-                case 'all':
-                  return true
-                case 'upcoming':
-                  return isEqual(new Date(trip.endDate), today) || isAfter(new Date(trip.endDate), today)
-                case 'past':
-                  return isBefore(new Date(trip.endDate), today)
-                default:
-                  return true
-              }
-            }).map(trip => (
-              <TableRow key={trip.id}>
-                <TableCell component="th" scope="row">
-                  <IconButton aria-label="edit" edge="start" classes={{ root: classes.editIconBtn }} onClick={() => handleEdit(trip.id)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton aria-label="delete" onClick={() => handleDelete(trip.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-                <TableCell>
-                  <Grid container direction='column'>
-                    <Grid item className={classes.title}>
-                      {trip.title}
-                    </Grid>
-                    {
-                      trip.location ? (
-                        <Hidden mdUp>
-                          <Grid item>
-                            @{trip.location}
-                          </Grid>
-                        </Hidden>
-                      ) : null
-                    }
-                    <Hidden smUp>
-                      <Grid item>
-                        {format(new Date(trip.startDate), 'yyyy/MM/dd')}
-                      &nbsp;-&nbsp;
-                      {format(new Date(trip.endDate), 'yyyy/MM/dd')}
-                      </Grid>
+          {stableSort(trips, getComparator(order, orderBy)).filter(trip => {
+            let today = new Date()
+            today.setHours(0, 0, 0, 0)
+            switch (filter) {
+              case 'all':
+                return true
+              case 'upcoming':
+                return isEqual(trip.endDate, today) || isAfter(trip.endDate, today)
+              case 'past':
+                return isBefore(trip.endDate, today)
+              default:
+                return true
+            }
+          }).map(trip => (
+            <TableRow key={trip.id}>
+              <TableCell component="th" scope="row" className={classes.actionsCell}>
+                <IconButton edge="start" onClick={handleEdit(trip.id)}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={handleDelete(trip.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </TableCell>
+
+              <TableCell onClick={linkToTripPage(trip.id)} className={classes.link}>
+                <Grid container direction='column'>
+                  <Grid item className={classes.title}>{trip.title}</Grid>
+                  {trip.location ? (
+                    <Hidden mdUp>
+                      <Grid item>&nbsp;@{trip.location}</Grid>
                     </Hidden>
-                  </Grid>
-                </TableCell>
-                <Hidden xsDown>
-                  <TableCell>{format(new Date(trip.startDate), 'yyyy/MM/dd')}</TableCell>
-                  <TableCell>{format(new Date(trip.endDate), 'yyyy/MM/dd')}</TableCell>
-                </Hidden>
-                <Hidden smDown>
-                  <TableCell>{trip.location}</TableCell>
-                </Hidden>
-              </TableRow>
-            ))}
+                  ) : null}
+                  <Hidden smUp>
+                    <Grid item>
+                      &nbsp;{format(trip.startDate, 'yyyy/MM/dd')}
+                        &nbsp;-&nbsp;{format(trip.endDate, 'yyyy/MM/dd')}
+                    </Grid>
+                  </Hidden>
+                </Grid>
+              </TableCell>
+
+              <Hidden xsDown>
+                <TableCell onClick={linkToTripPage(trip.id)} className={classes.link}>{format(trip.startDate, 'yyyy/MM/dd')}</TableCell>
+                <TableCell onClick={linkToTripPage(trip.id)} className={classes.link}>{format(trip.endDate, 'yyyy/MM/dd')}</TableCell>
+              </Hidden>
+
+              <Hidden smDown>
+                <TableCell onClick={linkToTripPage(trip.id)} className={classes.link}>{trip.location}</TableCell>
+              </Hidden>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </TableContainer>

@@ -22,8 +22,10 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export default props => {
-  const { filter, setFilter, setOpen } = props
+  const { filter, setFilter, setAction } = props
   const classes = useStyles()
+
+  const handleAddTrip = () => setAction({ name: 'add', id: undefined })
 
   return (
     <Grid
@@ -34,13 +36,7 @@ export default props => {
       style={{ marginBottom: '1em' }}
     >
       <Grid item>
-        <RadioGroup
-          row
-          aria-label="filter"
-          name="filter"
-          value={filter}
-          onChange={e => setFilter(e.target.value)}
-        >
+        <RadioGroup row value={filter} onChange={e => setFilter(e.target.value)}>
           <FormControlLabel
             value="upcoming"
             control={<Radio color="primary" />}
@@ -66,10 +62,10 @@ export default props => {
       </Grid>
       <Grid item>
         <Hidden xsDown>
-          <Button variant="contained" color="primary" onClick={() => setOpen('add')}>Add a Trip</Button>
+          <Button variant="contained" color="primary" onClick={handleAddTrip}>Add a Trip</Button>
         </Hidden>
         <Hidden smUp>
-          <Fab color="primary" aria-label="add" className={classes.fab} onClick={() => setOpen('add')}>
+          <Fab color="primary" className={classes.fab} onClick={handleAddTrip}>
             <AddIcon size="small" />
           </Fab>
         </Hidden>

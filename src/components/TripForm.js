@@ -1,223 +1,190 @@
 import React, { useState, useEffect } from 'react'
 import { isAfter } from 'date-fns'
 import DateFnsUtils from '@date-io/date-fns'
-import { makeStyles, useTheme } from '@material-ui/core/styles'
+import { MuiPickersUtilsProvider, DatePicker } from '@material-ui/pickers'
+import { useTheme } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Button from '@material-ui/core/Button'
-import TextField from '@material-ui/core/TextField'
 import Dialog from '@material-ui/core/Dialog'
 import DialogActions from '@material-ui/core/DialogActions'
 import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
-import Grid from '@material-ui/core/Grid'
 import FormHelperText from '@material-ui/core/FormHelperText'
-import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
+import Grid from '@material-ui/core/Grid'
+import TextField from '@material-ui/core/TextField'
 import db from '../lib/db'
-import { createTripData } from '../actions/createData'
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    padding: theme.spacing(1),
-  },
-}))
+import firebase from '../lib/firebase'
 
 export default props => {
-  const classes = useStyles()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
-
   const {
-    user,
+    setIsLoading,
     trips,
     setTrips,
-    open,
-    setOpen,
-    title,
-    setTitle,
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    location,
-    setLocation,
-    editID,
-    setEditID,
+    newTrip,
+    setNewTrip,
+    action,
+    setAction,
   } = props
 
-  const [titleError, setTitleError] = useState(false)
-  const [dateError, setDateError] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
+  const def = {
+    newTrip: { title: '', startDate: new Date(), endDate: null, location: '', note: '' },
+    action: { name: '', id: '' },
+    error: { title: false, message: '' },
+  }
+  const [error, setError] = useState(def.error)
 
+  const user = firebase.auth().currentUser
   const tripsRef = db.collection('users').doc(user.uid).collection('trips')
 
   const clearState = () => {
-    setOpen(false)
-    setTitle('')
-    setStartDate(new Date())
-    setEndDate(null)
-    setLocation('')
-    setTitleError(false)
-    setDateError(false)
-    setErrorMessage('')
-    setEditID('')
+    setAction(def.action)
+    setNewTrip(def.newTrip)
+    setError(def.error)
   }
 
   const errorCheck = () => {
-    if (!title && !startDate) {
-      setTitleError(true)
-      setDateError(true)
-      setErrorMessage('Title and start date are required.')
-    } else if (!title) {
-      setTitleError(true)
-      setDateError(false)
-      setErrorMessage('Title is required.')
-    } else if (!startDate) {
-      setTitleError(false)
-      setDateError(true)
-      setErrorMessage('Start date is required.')
+    if (!newTrip.title) {
+      setError({ title: true, message: 'Title is required.' })
     } else {
-      setTitleError(false)
-      setDateError(false)
-      setErrorMessage('')
+      setError(def.error)
     }
   }
 
-  const handleAddClick = () => {
+  const closeOutAction = () => {
+    setIsLoading({ deep: false, shallow: false })
+    setNewTrip(def.newTrip)
+    setError(def.error)
+  }
+
+  const handleAction = () => {
     errorCheck()
 
-    if (title && startDate) {
-      const startDateData = [startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate()]
-      const endDateData = endDate ? [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate()] : startDateData
+    const { title, startDate, endDate, location, note } = newTrip
 
-      const trip = {
-        title,
-        location,
-        startDate: startDateData,
-        endDate: endDateData,
+    if (title && startDate) {
+      setIsLoading({ deep: false, shallow: true })
+
+      const tripData = { title, startDate, endDate: endDate ? endDate : startDate, location, note }
+
+      switch (action.name) {
+        case 'add':
+          setAction(def.action)
+
+          tripsRef.add(tripData).then(snapshot => {
+            setTrips([...trips, { id: snapshot.id, ...tripData }])
+            closeOutAction()
+          })
+          break
+        case 'edit':
+          setAction(def.action)
+          tripsRef.doc(action.id).update(tripData).then(() => {
+            const untouchedTrips = trips.filter(trip => trip.id !== action.id)
+            setTrips([...untouchedTrips, { id: action.id, ...tripData }])
+            closeOutAction()
+          })
+          break
       }
-
-      tripsRef.add(trip).then(snapshot => {
-        setTrips([...trips, createTripData(snapshot.id, title, startDateData, endDateData, location)])
-        clearState()
-      })
     }
   }
 
-  const handleSaveClick = () => {
-    errorCheck()
-    
-    if (title && startDate) {
-      const startDateData = [startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate()]
-      const endDateData = endDate ? [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate()] : startDateData
-
-      tripsRef.doc(editID).update({
-        title,
-        location,
-        startDate: startDateData,
-        endDate: endDateData ? endDateData : startDateData,
-      }).then(() => {
-        const noUpdateTrips = trips.filter(trip => trip.id !== editID)
-
-        setTrips([...noUpdateTrips, createTripData(editID, title, startDateData, endDateData, location)])
-        clearState()
-      })
-    }
-  }
-
+  const handleTitleChange = e => setNewTrip({ ...newTrip, title: e.target.value })
   const handleStartDateChange = date => {
-    setStartDate(date)
-
-    if (!endDate || isAfter(date, endDate)) {
-      setEndDate(date)
+    if (!newTrip.endDate || isAfter(date, newTrip.endDate)) {
+      setNewTrip({ ...newTrip, startDate: date, endDate: date })
+    } else {
+      setNewTrip({ ...newTrip, startDate: date })
     }
   }
-
   const handleEndDateChange = date => {
-    setEndDate(date)
-
-    if (isAfter(startDate, date)) {
-      setStartDate(date)
+    if (isAfter(newTrip.startDate, date)) {
+      setNewTrip({ ...newTrip, startDate: date, endDate: date })
+    } else {
+      setNewTrip({ ...newTrip, endDate: date })
     }
   }
+  const handleLocationChange = e => setNewTrip({ ...newTrip, location: e.target.value })
+  const handleNoteChange = e => setNewTrip({ ...newTrip, note: e.target.value })
 
   useEffect(() => {
-    if (titleError || dateError) {
+    if (error.title) {
       errorCheck()
     }
-  }, [title, startDate])
+  }, [newTrip.title])
 
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <Dialog open={Boolean(open)} onClose={clearState} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title">New Trip</DialogTitle>
+      <Dialog open={Boolean(action.name)} onClose={clearState}>
+        <DialogTitle>New Trip</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
-            margin="dense"
+            margin={matchesXS ? 'dense' : 'normal'}
             required
-            id="title"
             label="Title"
-            value={title}
-            error={titleError}
-            onChange={e => setTitle(e.target.value)}
+            variant="outlined"
+            value={newTrip.title}
+            error={error.title}
             fullWidth
+            onChange={handleTitleChange}
           />
           <Grid container direction={matchesXS ? 'column' : 'row'} spacing={matchesXS ? undefined : 2}>
             <Grid item md>
-              <KeyboardDatePicker
-                margin="dense"
+              <DatePicker
+                margin={matchesXS ? 'dense' : 'normal'}
                 required
-                id="startDate"
                 label="Start Date"
+                inputVariant="outlined"
                 format="yyyy/MM/dd"
-                value={startDate}
+                value={newTrip.startDate}
                 autoOk
-                error={dateError}
-                onChange={handleStartDateChange}
-                KeyboardButtonProps={{ 'aria-label': 'change date' }}
                 fullWidth={matchesXS ? true : false}
+                onChange={handleStartDateChange}
               />
             </Grid>
             <Grid item md>
-              <KeyboardDatePicker
-                margin="dense"
-                required
+              <DatePicker
+                margin={matchesXS ? 'dense' : 'normal'}
                 id="endDate"
                 label="End Date"
+                inputVariant="outlined"
                 format="yyyy/MM/dd"
-                value={endDate}
+                value={newTrip.endDate}
                 autoOk
-                onChange={handleEndDateChange}
-                KeyboardButtonProps={{ 'aria-label': 'change date' }}
                 fullWidth={matchesXS ? true : false}
+                onChange={handleEndDateChange}
               />
             </Grid>
           </Grid>
           <TextField
-            margin="dense"
+            margin={matchesXS ? 'dense' : 'normal'}
             id="location"
             label="Location"
-            value={location}
-            onChange={e => setLocation(e.target.value)}
+            variant="outlined"
+            value={newTrip.location}
             fullWidth
+            onChange={handleLocationChange}
           />
-          <FormHelperText error={titleError || dateError}>{errorMessage}</FormHelperText>
+          <TextField
+            margin={matchesXS ? 'dense' : 'normal'}
+            label="Note"
+            variant="outlined"
+            value={newTrip.note}
+            fullWidth
+            multiline
+            rows={3}
+            onChange={handleNoteChange}
+          />
+          <FormHelperText error={error.title || error.date}>{error.message}</FormHelperText>
         </DialogContent>
-        <DialogActions classes={{ root: classes.root }}>
-          <Button onClick={clearState} color="primary">
-            Cancel
+        <DialogActions>
+          <Button onClick={clearState} color="primary">Cancel</Button>
+          <Button variant="contained" onClick={handleAction} color="primary">
+            {action.name === 'add' ? 'Add'
+              : action.name === 'edit' ? 'Save'
+                : null}
           </Button>
-          {
-            open === 'add' ? (
-              <Button variant="contained" onClick={handleAddClick} color="primary">
-                Add
-              </Button>
-            ) : open === 'edit' ? (
-              <Button variant="contained" onClick={handleSaveClick} color="primary">
-                Save
-              </Button>
-            ) : null
-          }
         </DialogActions>
       </Dialog>
     </MuiPickersUtilsProvider>

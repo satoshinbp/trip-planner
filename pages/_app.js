@@ -8,8 +8,6 @@ import theme from '../src/theme'
 export default function MyApp(props) {
   const { Component, pageProps } = props
   const [status, setStatus] = useState('loading')
-  const [user, setUser] = useState(null)
-  const [trips, setTrips] = useState([])
 
   useEffect(() => {
     // Remove the server-side injected CSS.
@@ -28,7 +26,7 @@ export default function MyApp(props) {
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
-        <Component {...pageProps} status={status} setStatus={setStatus} user={user} setUser={setUser} trips={trips} setTrips={setTrips} />
+        <Component {...pageProps} status={status} setStatus={setStatus} />
       </ThemeProvider>
     </React.Fragment>
   )

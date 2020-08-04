@@ -78,116 +78,121 @@ const useStyles = makeStyles(theme => ({
 
 export default withAuth(props => {
   const classes = useStyles()
-  const { user } = props
-  const [newEmail, setNewEmail] = useState('')
-  const [changeEmailPass, setChangeEmailPass] = useState('')
-  const [deleteAccountPass, setDeleteAccountPass] = useState('')
-  const [password, setPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [retypedPassword, setRetypedPassword] = useState('')
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [snackbarOpen, setSnackbarOpen] = useState(false)
-  const [backdropOpen, setBackdropOpen] = useState(false)
-  const [expanded, setExpanded] = useState(false)
-  const [error, setError] = useState(false)
-  const [message, setMessage] = useState('')
-  const [signInMethod, setSignInMethod] = useState('')
+  
+  const [signUp, setSignUp] = useState({ method: '', email: '', pass: '' })
+  const [changeEmail, setChangeEmail] = useState({ address: '', pass: '' })
+  const [changePass, setChangePass] = useState({ current: '', new: '', retype: '' })
+  const [deleteAccount, setDeleteAccount] = useState({ open: false, pass: '' })
+  const [result, setResult] = useState({ open: false, error: false, message: '' })
+  const [isLoading, setIsLoading] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
+  const user = firebase.auth().currentUser
   const provider = user.providerData.map(profile => profile.providerId)
 
-  const handleSetError = error => {
-    setBackdropOpen(false)
-    setError(true)
-    setMessage(error.message)
-    setSnackbarOpen(true)
-  }
-
   const handleChangeEmail = () => {
-    setBackdropOpen(true)
+    setIsLoading(true)
 
-    const credential = emailAuthProvider.credential(user.email, changeEmailPass)
+    const credential = emailAuthProvider.credential(user.email, changeEmail.pass)
 
-    user.reauthenticateWithCredential(credential).then(() => {
-      user.updateEmail(newEmail).then(() => {
-        setBackdropOpen(false)
-        setExpanded(false)
-        setMessage('E-mail updated successfully')
-        setSnackbarOpen(true)
+    user.reauthenticateWithCredential(credential).then(result => {
+      user.updateEmail(changeEmail.address).then(() => {
+        setIsLoading(false)
+        setIsExpanded(false)
+        setResult({ open: true, error: false, message: 'E-mail updated successfully' })
       }).catch(error => {
-        handleSetError(error)
+        setIsLoading(false)
+        setResult({ open: true, error: true, message: error.message })
       })
     }).catch(error => {
-      handleSetError(error)
+      setIsLoading(false)
+      setResult({ open: true, error: true, message: error.message })
     })
   }
 
-  const handleChangePassword = () => {
-    if (newPassword === retypedPassword) {
-      setBackdropOpen(true)
+  const handleChangePass = () => {
+    if (changePass.new === changePass.retype) {
+      setIsLoading(true)
 
-      const credential = emailAuthProvider.credential(user.email, password)
+      const credential = emailAuthProvider.credential(user.email, changePass.current)
 
       user.reauthenticateWithCredential(credential).then(() =>
-        user.updatePassword(newPassword).then(() => {
-          setBackdropOpen(false)
-          setExpanded(false)
-          setMessage('Password updated successfully')
-          setSnackbarOpen(true)
-        }).catch(error =>
-          handleSetError(error)
-        )
-      ).catch(error =>
-        handleSetError(error)
-      )
+        user.updatePassword(changePass.new).then(() => {
+          setIsLoading(false)
+          setIsExpanded(false)
+          setResult({ open: true, error: false, message: 'Password updated successfully' })
+        }).catch(error => {
+          setIsLoading(false)
+          setResult({ open: true, error: true, message: error.message })
+        })
+      ).catch(error => {
+        setIsLoading(false)
+        setResult({ open: true, error: true, message: error.message })
+      })
     } else {
-      setError(true)
-      setMessage('Password mismatch.')
-      setSnackbarOpen(true)
+      setResult({ open: true, error: true, message: 'Password mismatch.' })
     }
   }
 
   const handleDeleteAccount = () => {
-    setDialogOpen(false)
-    setBackdropOpen(true)
+    setDeleteAccount({ ...deleteAccount, open: false })
+    setIsLoading(true)
 
     if (provider.includes('password')) {
-      const credEmail = emailAuthProvider.credential(user.email, deleteAccountPass)
+      const credential = emailAuthProvider.credential(user.email, deleteAccount.pass)
 
-      user.reauthenticateWithCredential(credEmail).then(() =>
-        user.delete().catch(error =>
-          handleSetError(error)
-        )
-      ).catch(error =>
-        handleSetError(error)
-      )
+      user.reauthenticateWithCredential(credential).then(() =>
+        user.delete().catch(error => {
+          setIsLoading(false)
+          setResult({ open: true, error: true, message: error.message })
+        })
+      ).catch(error => {
+        setIsLoading(false)
+        setResult({ open: true, error: true, message: error.message })
+      })
     } else if (provider.includes('google.com')) {
       user.reauthenticateWithPopup(googleAuthProvider).then(() =>
-        user.delete().catch(error =>
-          andleSetError(error)
-        )
-      ).catch(error =>
-        handleSetError(error)
-      )
+        user.delete().catch(error => {
+          setIsLoading(false)
+          setResult({ open: true, error: true, message: error.message })
+        })
+      ).catch(error => {
+        setIsLoading(false)
+        setResult({ open: true, error: true, message: error.message })
+      })
     }
   }
 
-  const handleClose = () => {
-    setSnackbarOpen(false)
-    setError(false)
-    setMessage('')
-  }
-
-  const handleChange = panel => (e, expanded) => setExpanded(expanded ? panel : false)
-
   const handleSignUp = () => {
-    setBackdropOpen(true)
-
-    if (signInMethod === 'google') {
-      firebase.auth().currentUser.linkWithPopup(googleAuthProvider)
-        .then(() => router.push('/'))
-        .catch(error => handleSetError(error))
-    } 
+    switch (signUp.method) {
+      case 'google':
+        setIsLoading(true)
+        user.linkWithPopup(googleAuthProvider).then(() => {
+          router.push('/')
+        }).catch(error => {
+          setIsLoading(false)
+          setResult({ open: true, error: true, message: error.message })
+        })
+        break
+      case 'email':
+        setIsLoading(true)
+        const credential = emailAuthProvider.credential(signUp.email, signUp.pass)
+        user.linkWithCredential(credential).then(() => {
+          router.push('/')
+        }).catch(error => {
+          setIsLoading(false)
+          setResult({ open: true, error: true, message: error.message })
+        })
+        break
+      default:
+        setResult({ open: true, error: true, message: 'Select sign up method' })
+        break
+    }
   }
+
+  const handleCloseResult = () => setResult({ open: false, error: false, message: '' })
+
+  const handleChangePanel = panel => (e, expanded) => setIsExpanded(expanded ? panel : false)
 
   return (
     <div style={{ minHeight: '100vh', position: 'relative' }}>
@@ -206,14 +211,14 @@ export default withAuth(props => {
         {user.isAnonymous ? (
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <ListItemIcon classes={{ root: classes.icon }}>
+              <ListItemIcon className={classes.icon}>
                 <AddIcon color="secondary" />
               </ListItemIcon>
               <Box>
                 <Typography className={classes.heading}>Create Account</Typography>
                 <Hidden xsDown>
                   <Typography className={classes.secondaryHeading}>
-                    Your trips will be saved in new account.
+                    Your trips will be saved in a new account.
                   </Typography>
                 </Hidden>
               </Box>
@@ -222,10 +227,10 @@ export default withAuth(props => {
               <ListItemIcon />
               <Grid container direction="column">
                 <Typography variant="body1">
-                  You are currently signed in as a guest. If you sign up new account, you can save your trips permanently.
+                  You are currently signed in as a guest. If you sign up a new account, you can save your trips permanently.
                 </Typography>
                 <Typography variant="body1">Sign up with...</Typography>
-                <RadioGroup onChange={e => setSignInMethod(e.target.value)}>
+                <RadioGroup onChange={e => setSignUp({ ...signUp, method: e.target.value })}>
                   <FormControlLabel
                     value="google"
                     control={<Radio color="primary" />}
@@ -237,6 +242,27 @@ export default withAuth(props => {
                     label="E-mail and Password"
                   />
                 </RadioGroup>
+                {signUp.method === 'email' ? (
+                  <React.Fragment>
+                    <Grid item>
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        label="E-mail address"
+                        onChange={e => setSignUp({ ...signUp, email: e.target.value })}
+                      />
+                    </Grid>
+                    <Grid item>
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        label="Password"
+                        type="password"
+                        onChange={e => setSignUp({ ...signUp, pass: e.target.value })}
+                      />
+                    </Grid>
+                  </React.Fragment>
+                ) : null}
               </Grid>
             </AccordionDetails>
             <AccordionActions>
@@ -249,9 +275,9 @@ export default withAuth(props => {
             <React.Fragment>
               {provider.includes('password') ? (
                 <React.Fragment>
-                  <Accordion expanded={expanded === 'email'} onChange={handleChange('email')}>
+                  <Accordion expanded={isExpanded === 'email'} onChange={handleChangePanel('email')}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <ListItemIcon classes={{ root: classes.icon }}>
+                      <ListItemIcon className={classes.icon}>
                         <EmailIcon color="secondary" />
                       </ListItemIcon>
                       <Box>
@@ -269,7 +295,7 @@ export default withAuth(props => {
                             variant="outlined"
                             margin="normal"
                             label="New e-mail address"
-                            onChange={e => setNewEmail(e.target.value)}
+                            onChange={e => setChangeEmail({ ...changeEmail, address: e.target.value })}
                           />
                         </Grid>
                         <Grid item>
@@ -278,7 +304,7 @@ export default withAuth(props => {
                             margin="normal"
                             label="Password"
                             type="password"
-                            onChange={e => setChangeEmailPass(e.target.value)}
+                            onChange={e => setChangeEmail({ ...changeEmail, pass: e.target.value })}
                           />
                         </Grid>
                       </Grid>
@@ -289,9 +315,9 @@ export default withAuth(props => {
                     </AccordionActions>
                   </Accordion>
 
-                  <Accordion expanded={expanded === 'password'} onChange={handleChange('password')}>
+                  <Accordion expanded={isExpanded === 'password'} onChange={handleChangePanel('password')}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <ListItemIcon classes={{ root: classes.icon }}>
+                      <ListItemIcon className={classes.icon}>
                         <LockIcon color="secondary" />
                       </ListItemIcon>
                       <Box>
@@ -312,7 +338,7 @@ export default withAuth(props => {
                             margin="normal"
                             label="Current Password"
                             type="password"
-                            onChange={e => setPassword(e.target.value)}
+                            onChange={e => setChangePass({ ...changePass, current: e.target.value })}
                           />
                         </Grid>
                         <Grid item>
@@ -321,7 +347,7 @@ export default withAuth(props => {
                             margin="normal"
                             label="New Password"
                             type="password"
-                            onChange={e => setNewPassword(e.target.value)}
+                            onChange={e => setChangePass({ ...changePass, new: e.target.value })}
                           />
                         </Grid>
                         <Grid item>
@@ -330,14 +356,14 @@ export default withAuth(props => {
                             margin="normal"
                             label="Re-type New Password"
                             type="password"
-                            onChange={e => setRetypedPassword(e.target.value)}
+                            onChange={e => setChangePass({ ...changePass, retype: e.target.value })}
                           />
                         </Grid>
                       </Grid>
                     </AccordionDetails>
                     <Divider />
                     <AccordionActions>
-                      <Button size="small" color="primary" onClick={handleChangePassword}>
+                      <Button size="small" color="primary" onClick={handleChangePass}>
                         Save
                       </Button>
                     </AccordionActions>
@@ -345,9 +371,9 @@ export default withAuth(props => {
                 </React.Fragment>
               ) : null}
 
-              <Accordion expanded={expanded === 'delete'} onChange={handleChange('delete')}>
+              <Accordion expanded={isExpanded === 'delete'} onChange={handleChangePanel('delete')}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <ListItemIcon classes={{ root: classes.icon }}>
+                  <ListItemIcon className={classes.icon}>
                     <ClearIcon color="secondary" />
                   </ListItemIcon>
                   <Box>
@@ -368,7 +394,7 @@ export default withAuth(props => {
                 </AccordionDetails>
                 <Divider />
                 <AccordionActions>
-                  <Button size="small" color="primary" onClick={() => setDialogOpen(true)}>
+                  <Button size="small" color="primary" onClick={() => setDeleteAccount({ ...deleteAccount, open: true })}>
                     Delete
                   </Button>
                 </AccordionActions>
@@ -376,39 +402,39 @@ export default withAuth(props => {
             </React.Fragment>
           )}
 
-        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+        <Dialog open={deleteAccount.open} onClose={() => setDeleteAccount({ ...deleteAccount, open: false })}>
           <DialogTitle>Delete Account</DialogTitle>
           <DialogContent>
             <DialogContentText>
               Are you sure you want to permanently delete this accout?
-                  </DialogContentText>
+              </DialogContentText>
             {provider.includes('password') ? (
               <TextField
                 variant="outlined"
                 margin="normal"
                 label="Password"
                 type="password"
-                onChange={e => setDeleteAccountPass(e.target.value)}
+                onChange={e => setDeleteAccount({ ...deleteAccount, pass: e.target.value })}
               />
             ) : null}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDialogOpen(false)} color="primary">
+            <Button color="primary" onClick={() => setDeleteAccount({ ...deleteAccount, open: false })}>
               Cancel
-                  </Button>
-            <Button variant="contained" onClick={handleDeleteAccount} color="primary">
+              </Button>
+            <Button variant="contained" color="primary" onClick={handleDeleteAccount}>
               Delete
-                  </Button>
+              </Button>
           </DialogActions>
         </Dialog>
 
-        <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleClose}>
-          <Alert onClose={handleClose} severity={error ? 'error' : 'success'}>
-            {message}
+        <Snackbar open={result.open} autoHideDuration={6000} onClose={handleCloseResult}>
+          <Alert onClose={handleCloseResult} severity={result.error ? 'error' : 'success'}>
+            {result.message}
           </Alert>
         </Snackbar>
 
-        <Backdrop className={classes.backdrop} open={backdropOpen} onClick={handleClose}>
+        <Backdrop className={classes.backdrop} open={isLoading} onClick={() => setIsLoading(false)}>
           <CircularProgress color="inherit" />
         </Backdrop>
       </Container>
