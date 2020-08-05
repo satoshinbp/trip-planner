@@ -2,6 +2,12 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/router'
 import { format, isAfter, isBefore, isEqual } from 'date-fns'
 import { makeStyles } from '@material-ui/core/styles'
+import Button from '@material-ui/core/Button'
+import Dialog from '@material-ui/core/Dialog'
+import DialogActions from '@material-ui/core/DialogActions'
+import DialogContent from '@material-ui/core/DialogContent'
+import DialogContentText from '@material-ui/core/DialogContentText'
+import DialogTitle from '@material-ui/core/DialogTitle'
 import Grid from '@material-ui/core/Grid'
 import Hidden from '@material-ui/core/Hidden'
 import IconButton from '@material-ui/core/IconButton'
@@ -82,6 +88,7 @@ export default props => {
 
   const [order, setOrder] = useState('asc')
   const [orderBy, setOrderBy] = useState('startDate')
+  const [deleteTrip, setDeleteTrip] = useState({ open: false, id: '' })
 
   const user = firebase.auth().currentUser
   const tripsRef = db.collection('users').doc(user.uid).collection('trips')
@@ -104,12 +111,15 @@ export default props => {
 
   const handleDelete = id => () => {
     setIsLoading({ deep: false, shallow: true })
+    setDeleteTrip({ open: false, id: '' })
 
-    tripsRef.doc(id).delete().then(snapshot => {
+    tripsRef.doc(id).delete().then(() => {
       setTrips(trips.filter(trip => trip.id !== id))
       setIsLoading({ deep: false, shallow: false })
     })
   }
+
+  const handleClose = () => setDeleteTrip({ open: false, id: '' })
 
   const linkToTripPage = id => () => router.push('/trip/[tid]', `/trip/${id}`)
 
@@ -201,7 +211,7 @@ export default props => {
                 <IconButton edge="start" onClick={handleEdit(trip.id)}>
                   <EditIcon />
                 </IconButton>
-                <IconButton onClick={handleDelete(trip.id)}>
+                <IconButton onClick={() => setDeleteTrip({ open: true, id: trip.id })}>
                   <DeleteIcon />
                 </IconButton>
               </TableCell>
@@ -235,6 +245,23 @@ export default props => {
           ))}
         </TableBody>
       </Table>
+
+      <Dialog open={deleteTrip.open} onClose={handleClose}>
+        <DialogTitle>Delete Trip</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to permanently delete this trip?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button color="primary" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="secondary" onClick={handleDelete(deleteTrip.id)}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </TableContainer>
   )
 }

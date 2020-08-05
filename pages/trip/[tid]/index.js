@@ -6,8 +6,10 @@ import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Accordion from '@material-ui/core/Accordion'
 import AccordionDetails from '@material-ui/core/AccordionDetails'
 import AccordionSummary from '@material-ui/core/AccordionSummary'
+import Backdrop from '@material-ui/core/Backdrop'
 import Box from '@material-ui/core/Box'
 import Button from '@material-ui/core/Button'
+import CircularProgress from '@material-ui/core/CircularProgress'
 import Container from '@material-ui/core/Container'
 import Divider from '@material-ui/core/Divider'
 import EventIcon from '@material-ui/icons/Event'
@@ -18,14 +20,13 @@ import Hidden from '@material-ui/core/Hidden'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Typography from '@material-ui/core/Typography'
 import AddIcon from '@material-ui/icons/Add'
-import HotelIcon from '@material-ui/icons/Hotel'
-import RestaurantIcon from '@material-ui/icons/Restaurant'
 import withAuth from '../../../src/withAuth'
 import EventForm from '../../../src/components/EventForm'
 import Footer from '../../../src/components/Footer'
 import Header from '../../../src/components/Header'
 import LoadingPage from '../../../src/components/LoadingPage'
 import db from '../../../src/lib/db'
+import categories from '../../../src/lib/eventCategories'
 import firebase from '../../../src/lib/firebase'
 
 const useStyles = makeStyles(theme => ({
@@ -66,6 +67,13 @@ const useStyles = makeStyles(theme => ({
       width: 72,
     },
   },
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: '#fff',
+  },
+  link: {
+    cursor: 'pointer',
+  },
 }))
 
 export default withAuth(props => {
@@ -81,7 +89,9 @@ export default withAuth(props => {
   const [events, setEvents] = useState([])
   const [action, setAction] = useState({ name: '', id: '' })
 
-  const handleAddEvent = () => setAction({ name: 'add', id: undefined })
+  const handleAddEvent = () => setAction({ name: 'add', id: '' })
+  const handleEditEvent = id => () => setAction({ name: 'edit', id })
+  const handleClose = () => setIsLoading({ deep: false, shallow: false })
 
   useEffect(() => {
     let unmounted = false
@@ -90,6 +100,7 @@ export default withAuth(props => {
 
     const user = firebase.auth().currentUser
     const tripRef = db.collection('users').doc(user.uid).collection('trips').doc(tid)
+    const eventsRef = db.collection('users').doc(user.uid).collection('trips').doc(tid).collection('events')
     const eventsRef = db.collection('users').doc(user.uid).collection('trips').doc(tid).collection('events')
 
     tripRef.get().then(snapshot => {
@@ -104,7 +115,7 @@ export default withAuth(props => {
         datesData.push(date)
       }
 
-      eventsRef.get().then(snapshot => {
+      eventsRef.orderBy('startTime').get().then(snapshot => {
         const eventsData = []
         snapshot.forEach(childSnapshot => {
           eventsData.push({
@@ -174,51 +185,58 @@ export default withAuth(props => {
                 {events.filter(event => isSameDay(event.startTime, date)).map((event, i) => (
                   <React.Fragment key={event.id}>
                     {i === 0 ? null : <Divider className={classes.divider} />}
-                    <Grid item container>
+                    <Grid item container className={classes.link} onClick={handleEditEvent(event.id)}>
                       <Grid item className={classes.time}>
-                        {matchesXS ? (
-                          <>
+                        {matchesXS
+                          ? (
+                            <>
+                              <Typography variant="body1">
+                                {format(event.startTime, 'HH:mm')}
+                              </Typography>
+                              <Typography variant="body2">
+                                &nbsp;-&nbsp;
+                                {event.endTime && isSameDay(event.startTime, event.endTime)
+                                  ? format(event.endTime, 'HH:mm')
+                                  : null}
+                              </Typography>
+                            </>
+                          ) : (
                             <Typography variant="body1">
-                              {format(event.startTime, 'HH:mm')}
-                            </Typography>
-                            <Typography variant="body2">
-                              &nbsp;-&nbsp;
+                              {format(event.startTime, 'HH:mm')}&nbsp;-&nbsp;
                               {event.endTime && isSameDay(event.startTime, event.endTime)
                                 ? format(event.endTime, 'HH:mm')
                                 : null}
                             </Typography>
-                          </>
-                        ) : (
-                            <Typography variant="body1">
-                              {format(event.startTime, 'HH:mm')}
-                                      &nbsp;-&nbsp;
-                              {event.endTime && isSameDay(event.startTime, event.endTime)
-                                ? format(event.endTime, 'HH:mm')
-                                : null}
-                            </Typography>
-                          )}
+                          )
+                        }
                       </Grid>
                       <ListItemIcon className={classes.icon}>
-                        {event.category === 'event' ? <EventIcon color="secondary" />
-                          : event.category === 'meal' ? <RestaurantIcon color="secondary" />
-                            : event.category === 'hotel' ? <HotelIcon color="secondary" />
-                              : null}
-                      </ListItemIcon>
-                      {matchesXS ? (
-                        <Box>
-                          <Typography variant="body1">{event.title}</Typography>
-                          {event.location ? (
-                            <Typography variant="body2">&nbsp;@{event.location}</Typography>
-                          ) : null}
-                        </Box>
-                      ) : (
-                          <>
-                            <Typography variant="body1">{event.title}</Typography>
-                            {event.location ? (
-                              <Typography variant="body1">&nbsp;@{event.location}</Typography>
-                            ) : null}
-                          </>
+                        {categories.map(category =>
+                          category.subCategories
+                            ? (
+                              category.subCategories.map(subCategory =>
+                                subCategory.value === event.category ? subCategory.icon : null
+                              )
+                            ) : category.value === event.category ? category.icon : null
                         )}
+                      </ListItemIcon>
+                      {matchesXS
+                        ? (
+                          <Box>
+                            <Typography variant="body1">{event.name}</Typography>
+                            {event.location
+                              ? <Typography variant="body2">&nbsp;@{event.location}</Typography>
+                              : null}
+                          </Box>
+                        ) : (
+                          <>
+                            <Typography variant="body1">{event.name}</Typography>
+                            {event.location
+                              ? <Typography variant="body1">&nbsp;@{event.location}</Typography>
+                              : null}
+                          </>
+                        )
+                      }
                     </Grid>
                   </React.Fragment>
                 ))}
@@ -238,6 +256,10 @@ export default withAuth(props => {
         action={action}
         setAction={setAction}
       />
+
+      <Backdrop className={classes.backdrop} open={isLoading.shallow} onClick={handleClose}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
 
       <Footer />
     </div >

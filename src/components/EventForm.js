@@ -17,6 +17,7 @@ import ListSubheader from '@material-ui/core/ListSubheader'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
+import DeleteIcon from '@material-ui/icons/Delete'
 import DirectionsBikeIcon from '@material-ui/icons/DirectionsBike'
 import DirectionsBoatIcon from '@material-ui/icons/DirectionsBoat'
 import DirectionsBusIcon from '@material-ui/icons/DirectionsBus'
@@ -27,8 +28,10 @@ import FlightIcon from '@material-ui/icons/Flight'
 import HotelIcon from '@material-ui/icons/Hotel'
 import LocalTaxiIcon from '@material-ui/icons/LocalTaxi'
 import RestaurantIcon from '@material-ui/icons/Restaurant'
+import SaveIcon from '@material-ui/icons/Save'
 import TripOriginIcon from '@material-ui/icons/TripOrigin'
 import db from '../lib/db'
+import categories from '../lib/eventCategories'
 import firebase from '../lib/firebase'
 
 const useStyles = makeStyles(theme => ({
@@ -49,33 +52,15 @@ export default props => {
 
   const def = {
     isLoading: { deep: false, shallow: false },
-    newEvent: { category: 'none', title: '', startTime: dates[0], endTime: null, location: '', note: '' },
+    newEvent: { category: 'none', name: '', startTime: dates[0], endTime: null, location: '', note: '' },
     action: { name: '', id: '' },
-    error: { title: false, message: '' },
+    error: { name: false, message: '' },
   }
   const [newEvent, setNewEvent] = useState(def.newEvent)
   const [error, setError] = useState(def.error)
 
   const user = firebase.auth().currentUser
   const eventsRef = db.collection('users').doc(user.uid).collection('trips').doc(tid).collection('events')
-  const categories = [
-    { name: 'None', value: 'none', icon: <TripOriginIcon color="secondary" /> },
-    { name: 'Meal', value: 'meal', icon: <RestaurantIcon color="secondary" /> },
-    { name: 'Hotel', value: 'hotel', icon: <HotelIcon color="secondary" /> },
-    {
-      name: 'Transit',
-      subCategories: [
-        { name: 'Walk', value: 'walk', icon: <DirectionsWalkIcon color="secondary" /> },
-        { name: 'Bike', value: 'bike', icon: <DirectionsBikeIcon color="secondary" /> },
-        { name: 'Car', value: 'car', icon: <DirectionsCarIcon color="secondary" /> },
-        { name: 'Taxi', value: 'taxi', icon: <LocalTaxiIcon color="secondary" /> },
-        { name: 'Bus', value: 'bus', icon: <DirectionsBusIcon color="secondary" /> },
-        { name: 'Train', value: 'train', icon: <DirectionsTransitIcon color="secondary" /> },
-        { name: 'Flight', value: 'flight', icon: <FlightIcon color="secondary" /> },
-        { name: 'Ferry', value: 'ferry', icon: <DirectionsBoatIcon color="secondary" /> },
-      ]
-    },
-  ]
 
   const clearState = () => {
     setAction(def.action)
@@ -84,8 +69,8 @@ export default props => {
   }
 
   const errorCheck = () => {
-    if (!newEvent.title) {
-      setError({ title: true, message: 'Title is required.' })
+    if (!newEvent.name) {
+      setError({ name: true, message: 'Title is required.' })
     } else {
       setError(def.error)
     }
@@ -100,19 +85,23 @@ export default props => {
   const handleAction = () => {
     errorCheck()
 
-    const { category, title, startTime, endTime, location, note } = newEvent
+    const { category, name, startTime, endTime, location, note } = newEvent
 
-    if (title && startTime) {
+    if (name && startTime) {
       setIsLoading({ deep: false, shallow: true })
 
-      const eventData = { category, title, startTime, endTime, location, note }
+      const eventData = { category, name, startTime, endTime, location, note }
 
       switch (action.name) {
         case 'add':
           setAction(def.action)
 
           eventsRef.add(eventData).then(snapshot => {
-            setEvents([...events, { id: snapshot.id, ...eventData }])
+            setEvents([...events, { id: snapshot.id, ...eventData }].sort((a, b) => {
+              if (isAfter(b.startTime, a.startTime)) return -1
+              if (isAfter(a.startTime, b.startTime)) return 1
+              return 0
+            }))
             closeOutAction()
           })
           break
@@ -121,7 +110,11 @@ export default props => {
 
           eventsRef.doc(action.id).update(eventData).then(() => {
             const untouchedEvents = events.filter(trip => trip.id !== action.id)
-            setEvents([...untouchedEvents, { id: action.id, ...tripData }])
+            setEvents([...untouchedEvents, { id: action.id, ...eventData }].sort((a, b) => {
+              if (isAfter(b.startTime, a.startTime)) return -1
+              if (isAfter(a.startTime, b.startTime)) return 1
+              return 0
+            }))
             closeOutAction()
           })
           break
@@ -129,8 +122,20 @@ export default props => {
     }
   }
 
+  const handleDelete = () => {
+    setIsLoading({ deep: false, shallow: true })
+    const eid = action.id
+    setAction(def.action)
+
+    eventsRef.doc(eid).delete().then(() => {
+      setEvents(events.filter(event => event.id !== eid))
+      setIsLoading(def.isLoading)
+      setNewEvent(def.newEvent)
+    })
+  }
+
   const handleCategoryChange = e => setNewEvent({ ...newEvent, category: e.target.value })
-  const handleTitleChange = e => setNewEvent({ ...newEvent, title: e.target.value })
+  const handleNameChange = e => setNewEvent({ ...newEvent, name: e.target.value })
   const handleStartTimeChange = time => {
     if (isAfter(time, newEvent.endTime)) {
       setNewEvent({ ...newEvent, startTime: time, endTime: time })
@@ -149,10 +154,14 @@ export default props => {
   const handleNoteChange = e => setNewEvent({ ...newEvent, note: e.target.value })
 
   useEffect(() => {
-    if (error.title) {
+    setNewEvent(action.name === 'edit' ? events.filter(event => event.id === action.id)[0] : def.newEvent)
+  }, [action])
+
+  useEffect(() => {
+    if (error.name) {
       errorCheck()
     }
-  }, [newEvent.title])
+  }, [newEvent.name])
 
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -203,12 +212,12 @@ export default props => {
             autoFocus
             margin={matchesXS ? 'dense' : 'normal'}
             required
-            label="Title"
+            label="Name"
             variant="outlined"
-            value={newEvent.title}
-            error={error.title}
+            value={newEvent.name}
+            error={error.name}
             fullWidth
-            onChange={handleTitleChange}
+            onChange={handleNameChange}
           />
           <Grid container direction={matchesXS ? 'column' : 'row'} spacing={matchesXS ? undefined : 2}>
             <Grid item md>
@@ -259,16 +268,26 @@ export default props => {
             rows={3}
             onChange={handleNoteChange}
           />
-          <FormHelperText error={error.title || error.date}>{error.message}</FormHelperText>
+          <FormHelperText error={error.name || error.date}>{error.message}</FormHelperText>
         </DialogContent>
 
         <DialogActions>
           <Button onClick={clearState} color="primary">Cancel</Button>
-          <Button variant="contained" onClick={handleAction} color="primary">
-            {action.name === 'add' ? 'Add'
-              : action.name === 'edit' ? 'Save'
-                : null}
-          </Button>
+          {action.name === 'add' ?
+            <Button variant="contained" color="primary" onClick={handleAction}>
+              Add
+            </Button>
+            : action.name === 'edit' ?
+              <>
+                <Button variant="contained" color="primary" startIcon={matchesXS ? null : <SaveIcon />} onClick={handleAction}>
+                  Save
+                </Button>
+                <Button variant="contained" color="secondary" startIcon={matchesXS ? null : <DeleteIcon />} onClick={handleDelete}>
+                  Delete
+                </Button>
+              </>
+              : null
+          }
         </DialogActions>
       </Dialog>
     </MuiPickersUtilsProvider>

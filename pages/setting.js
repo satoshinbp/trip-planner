@@ -57,7 +57,7 @@ const useStyles = makeStyles(theme => ({
   },
   secondaryHeading: {
     fontSize: theme.typography.pxToRem(15),
-    color: theme.palette.text.secondary,
+    color: theme.palette.text.primary,
   },
   icon: {
     display: 'flex',
@@ -212,7 +212,7 @@ export default withAuth(props => {
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <ListItemIcon className={classes.icon}>
-                <AddIcon color="secondary" />
+                <AddIcon color="primary" />
               </ListItemIcon>
               <Box>
                 <Typography className={classes.heading}>Create Account</Typography>
@@ -278,7 +278,7 @@ export default withAuth(props => {
                   <Accordion expanded={isExpanded === 'email'} onChange={handleChangePanel('email')}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <ListItemIcon className={classes.icon}>
-                        <EmailIcon color="secondary" />
+                        <EmailIcon color="primary" />
                       </ListItemIcon>
                       <Box>
                         <Typography className={classes.heading}>Change E-mail</Typography>
@@ -318,7 +318,7 @@ export default withAuth(props => {
                   <Accordion expanded={isExpanded === 'password'} onChange={handleChangePanel('password')}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <ListItemIcon className={classes.icon}>
-                        <LockIcon color="secondary" />
+                        <LockIcon color="primary" />
                       </ListItemIcon>
                       <Box>
                         <Typography className={classes.heading}>Change Password</Typography>
@@ -374,7 +374,7 @@ export default withAuth(props => {
               <Accordion expanded={isExpanded === 'delete'} onChange={handleChangePanel('delete')}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <ListItemIcon className={classes.icon}>
-                    <ClearIcon color="secondary" />
+                    <ClearIcon color="primary" />
                   </ListItemIcon>
                   <Box>
                     <Typography className={classes.heading}>Delete Account</Typography>
@@ -394,7 +394,7 @@ export default withAuth(props => {
                 </AccordionDetails>
                 <Divider />
                 <AccordionActions>
-                  <Button size="small" color="primary" onClick={() => setDeleteAccount({ ...deleteAccount, open: true })}>
+                  <Button size="small" color="secondary" onClick={() => setDeleteAccount({ ...deleteAccount, open: true })}>
                     Delete
                   </Button>
                 </AccordionActions>
@@ -421,10 +421,10 @@ export default withAuth(props => {
           <DialogActions>
             <Button color="primary" onClick={() => setDeleteAccount({ ...deleteAccount, open: false })}>
               Cancel
-              </Button>
-            <Button variant="contained" color="primary" onClick={handleDeleteAccount}>
+            </Button>
+            <Button variant="contained" color="secondary" onClick={handleDeleteAccount}>
               Delete
-              </Button>
+            </Button>
           </DialogActions>
         </Dialog>
 
