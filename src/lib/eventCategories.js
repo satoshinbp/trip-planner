@@ -6,7 +6,6 @@ import DirectionsTransitIcon from '@material-ui/icons/DirectionsTransit'
 import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk'
 import FlightIcon from '@material-ui/icons/Flight'
 import HotelIcon from '@material-ui/icons/Hotel'
-import LocalTaxiIcon from '@material-ui/icons/LocalTaxi'
 import RestaurantIcon from '@material-ui/icons/Restaurant'
 import TripOriginIcon from '@material-ui/icons/TripOrigin'
 
@@ -14,17 +13,15 @@ export default [
   { name: 'None', value: 'none', icon: <TripOriginIcon color="primary" /> },
   { name: 'Restaurant', value: 'restaurant', icon: <RestaurantIcon color="primary" /> },
   { name: 'Hotel', value: 'hotel', icon: <HotelIcon color="primary" /> },
-  {
-    name: 'Transit',
-    subCategories: [
-      { name: 'Walk', value: 'walk', icon: <DirectionsWalkIcon color="primary" /> },
-      { name: 'Bike', value: 'bike', icon: <DirectionsBikeIcon color="primary" /> },
-      { name: 'Car', value: 'car', icon: <DirectionsCarIcon color="primary" /> },
-      { name: 'Taxi', value: 'taxi', icon: <LocalTaxiIcon color="primary" /> },
-      { name: 'Bus', value: 'bus', icon: <DirectionsBusIcon color="primary" /> },
-      { name: 'Train', value: 'train', icon: <DirectionsTransitIcon color="primary" /> },
-      { name: 'Flight', value: 'flight', icon: <FlightIcon color="primary" /> },
-      { name: 'Ferry', value: 'ferry', icon: <DirectionsBoatIcon color="primary" /> },
-    ]
-  },
+  { name: 'Transportation', value: 'transportation', icon: <DirectionsTransitIcon color="primary" /> },
+]
+
+export const transportationSubCategories = [
+  { name: 'Walk', value: 'walk', icon: <DirectionsWalkIcon color="primary" /> },
+  { name: 'Bike', value: 'bike', icon: <DirectionsBikeIcon color="primary" /> },
+  { name: 'Car', value: 'car', icon: <DirectionsCarIcon color="primary" /> },
+  { name: 'Bus', value: 'bus', icon: <DirectionsBusIcon color="primary" /> },
+  { name: 'Train', value: 'train', icon: <DirectionsTransitIcon color="primary" /> },
+  { name: 'Ferry', value: 'ferry', icon: <DirectionsBoatIcon color="primary" /> },
+  { name: 'Flight', value: 'flight', icon: <FlightIcon color="primary" /> },
 ]

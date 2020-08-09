@@ -123,7 +123,6 @@ export default props => {
             margin={matchesXS ? 'dense' : 'normal'}
             required
             label="Title"
-            variant="outlined"
             value={newTrip.title}
             error={error.title}
             fullWidth
@@ -135,7 +134,6 @@ export default props => {
                 margin={matchesXS ? 'dense' : 'normal'}
                 required
                 label="Start Date"
-                inputVariant="outlined"
                 format="yyyy/MM/dd"
                 value={newTrip.startDate}
                 autoOk
@@ -148,7 +146,6 @@ export default props => {
                 margin={matchesXS ? 'dense' : 'normal'}
                 id="endDate"
                 label="End Date"
-                inputVariant="outlined"
                 format="yyyy/MM/dd"
                 value={newTrip.endDate}
                 autoOk
@@ -161,7 +158,6 @@ export default props => {
             margin={matchesXS ? 'dense' : 'normal'}
             id="location"
             label="Location"
-            variant="outlined"
             value={newTrip.location}
             fullWidth
             onChange={handleLocationChange}
