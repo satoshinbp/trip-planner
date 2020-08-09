@@ -87,8 +87,10 @@ export default props => {
       note: '',
     },
     action: { mode: '', id: '' },
+    result: { error: false, message: '' },
   }
   const [newEvent, setNewEvent] = useState(def.event)
+  const [result, setResult] = useState(def.result)
 
   const user = firebase.auth().currentUser
   const eventsRef = db.collection('users').doc(user.uid).collection('trips').doc(tid).collection('events')
@@ -96,40 +98,88 @@ export default props => {
   const clearState = () => {
     setAction(def.action)
     setNewEvent(def.event)
+    setResult(def.result)
   }
   const closeOutAction = () => {
     setIsLoading(def.isLoading)
     setNewEvent(def.event)
+    setResult(def.result)
+  }
+  const resultCheck = () => {
+    switch (newEvent.category) {
+      case 'none':
+        if (!newEvent.name) {
+          setResult({ error: true, message: 'Title is required.' })
+          return false
+        } else {
+          setResult(def.result)
+          return true
+        }
+      case 'restaurant':
+        if (!newEvent.name) {
+          setResult({ error: true, message: 'Name is required.' })
+          return false
+        } else {
+          setResult(def.result)
+          return true
+        }
+      case 'hotel':
+        if (!newEvent.name) {
+          setResult({ error: true, message: 'Name is required.' })
+          return false
+        } else {
+          setResult(def.result)
+          return true
+        }
+      case 'transportation':
+        if (!newEvent.origin && !newEvent.destination) {
+          setResult({ error: true, message: 'Origin and destination are required.' })
+          return false
+        } else if (!newEvent.origin) {
+          setResult({ error: true, message: 'Origin is required.' })
+          return false
+        } else if (!newEvent.destination) {
+          setResult({ error: true, message: 'Destination is required.' })
+          return false
+        } else {
+          setResult(def.result)
+          return true
+        }
+      default:
+        setResult({ error: true, message: 'Category is required.' })
+        return false
+    }
   }
   const handleAction = () => {
-    setIsLoading({ deep: false, shallow: true })
-
-    switch (action.mode) {
-      case 'add':
-        setAction(def.action)
-
-        eventsRef.add(newEvent).then(snapshot => {
-          setEvents([...events, { id: snapshot.id, ...newEvent }].sort((a, b) => {
-            if (isAfter(b.startTime, a.startTime)) return -1
-            if (isAfter(a.startTime, b.startTime)) return 1
-            return 0
-          }))
-          closeOutAction()
-        })
-        break
-      case 'edit':
-        setAction(def.action)
-
-        eventsRef.doc(action.id).update(newEvent).then(() => {
-          const untouchedEvents = events.filter(trip => trip.id !== action.id)
-          setEvents([...untouchedEvents, { id: action.id, ...newEvent }].sort((a, b) => {
-            if (isAfter(b.startTime, a.startTime)) return -1
-            if (isAfter(a.startTime, b.startTime)) return 1
-            return 0
-          }))
-          closeOutAction()
-        })
-        break
+    if (resultCheck()) {
+      setIsLoading({ deep: false, shallow: true })
+      switch (action.mode) {
+        case 'add':
+          setAction(def.action)
+  
+          eventsRef.add(newEvent).then(snapshot => {
+            setEvents([...events, { id: snapshot.id, ...newEvent }].sort((a, b) => {
+              if (isAfter(b.startTime, a.startTime)) return -1
+              if (isAfter(a.startTime, b.startTime)) return 1
+              return 0
+            }))
+            closeOutAction()
+          })
+          break
+        case 'edit':
+          setAction(def.action)
+  
+          eventsRef.doc(action.id).update(newEvent).then(() => {
+            const untouchedEvents = events.filter(trip => trip.id !== action.id)
+            setEvents([...untouchedEvents, { id: action.id, ...newEvent }].sort((a, b) => {
+              if (isAfter(b.startTime, a.startTime)) return -1
+              if (isAfter(a.startTime, b.startTime)) return 1
+              return 0
+            }))
+            closeOutAction()
+          })
+          break
+      }
     }
   }
   const handleDelete = () => {
@@ -161,21 +211,31 @@ export default props => {
   const renderContent = category => {
     switch (category) {
       case 'none':
-        return <None newEvent={newEvent} setNewEvent={setNewEvent} />
+        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
       case 'restaurant':
-        return <Restaurant newEvent={newEvent} setNewEvent={setNewEvent} />
+        return <Restaurant newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
       case 'hotel':
-        return <Hotel newEvent={newEvent} setNewEvent={setNewEvent} />
+        return <Hotel newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
       case 'transportation':
-        return <Transportation newEvent={newEvent} setNewEvent={setNewEvent} />
+        return <Transportation newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
       default:
-        return <None newEvent={newEvent} setNewEvent={setNewEvent} />
+        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
     }
   }
 
   useEffect(() => {
     setNewEvent(action.mode === 'edit' ? events.filter(event => event.id === action.id)[0] : def.event)
   }, [action.mode])
+
+  useEffect(() => {
+    if (result.error) {
+      resultCheck()
+    }
+  }, [newEvent])
+
+  useEffect(() => {
+    setResult(def.result)
+  }, [newEvent.category])
 
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -205,27 +265,29 @@ export default props => {
               ))}
             </TextField>
           </FormControl>
-        {renderContent(newEvent.category)}
+          {renderContent(newEvent.category)}
         </DialogContent>
 
-      <DialogActions>
-        <Button onClick={clearState} color="primary">Cancel</Button>
-        {action.mode === 'add' ?
-          <Button variant="contained" color="primary" onClick={handleAction}>
-            Add
-            </Button>
-          : action.mode === 'edit' ?
-            <>
-              <Button variant="contained" color="primary" startIcon={matchesXS ? null : <SaveIcon />} onClick={handleAction}>
-                Save
-                </Button>
-              <Button variant="contained" color="secondary" startIcon={matchesXS ? null : <DeleteIcon />} onClick={handleDelete}>
-                Delete
-                </Button>
-            </>
-            : null
-        }
-      </DialogActions>
+        <DialogActions>
+          <Button onClick={clearState} color="primary">Cancel</Button>
+          {action.mode === 'add'
+            ? (
+              <Button variant="contained" color="primary" onClick={handleAction}>
+                Add
+              </Button>
+            ) : action.mode === 'edit'
+              ? (
+                <>
+                  <Button variant="contained" color="primary" startIcon={matchesXS ? null : <SaveIcon />} onClick={handleAction}>
+                    Save
+                  </Button>
+                  <Button variant="contained" color="secondary" startIcon={matchesXS ? null : <DeleteIcon />} onClick={handleDelete}>
+                    Delete
+                  </Button>
+                </>
+              ) : null
+          }
+        </DialogActions>
       </Dialog>
     </MuiPickersUtilsProvider >
   )

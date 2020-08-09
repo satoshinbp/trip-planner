@@ -38,7 +38,7 @@ export default props => {
   const [isLoading, setIsLoading] = useState({ deep: false, shallow: false })
   const [filter, setFilter] = useState('upcoming')
   const [trips, setTrips] = useState([])
-  const [newTrip, setNewTrip] = useState({ title: '', startDate: new Date(), endDate: null, location: '', note: '' })
+  const [newTrip, setNewTrip] = useState({ title: '', startDate: new Date(), endDate: new Date(), location: '', note: '' })
   const [action, setAction] = useState({ name: '', id: '' })
 
   const handleAddTrip = () => setAction({ name: 'add', id: '' })

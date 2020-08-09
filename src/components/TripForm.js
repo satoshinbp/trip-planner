@@ -29,7 +29,7 @@ export default props => {
   } = props
 
   const def = {
-    newTrip: { title: '', startDate: new Date(), endDate: null, location: '', note: '' },
+    newTrip: { title: '', startDate: new Date(), endDate: new Date(), location: '', note: '' },
     action: { name: '', id: '' },
     error: { title: false, message: '' },
   }
@@ -144,7 +144,7 @@ export default props => {
             <Grid item md>
               <DatePicker
                 margin={matchesXS ? 'dense' : 'normal'}
-                id="endDate"
+                required
                 label="End Date"
                 format="yyyy/MM/dd"
                 value={newTrip.endDate}

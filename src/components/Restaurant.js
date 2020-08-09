@@ -5,6 +5,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Grid from '@material-ui/core/Grid'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormHelperText from '@material-ui/core/FormHelperText'
 import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
 
@@ -20,7 +21,7 @@ export default props => {
   const classes = useStyle()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
-  const { newEvent, setNewEvent } = props
+  const { newEvent, setNewEvent, result } = props
 
   const handleNameChange = e => setNewEvent({ ...newEvent, name: e.target.value })
   const handleStartTimeChange = time => {
@@ -50,9 +51,14 @@ export default props => {
         required
         label="Name"
         value={newEvent.name}
+        error={!newEvent.name && result.error}
         fullWidth
         onChange={handleNameChange}
       />
+      <FormHelperText error={result.error}>
+        {result.message}
+      </FormHelperText>
+      
       <Grid
         container
         direction={matchesXS ? 'column' : 'row'}

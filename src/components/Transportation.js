@@ -5,6 +5,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import FormControl from '@material-ui/core/FormControl'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
+import FormHelperText from '@material-ui/core/FormHelperText'
 import Grid from '@material-ui/core/Grid'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import MenuItem from '@material-ui/core/MenuItem'
@@ -35,7 +36,7 @@ export default props => {
   const classes = useStyle()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
-  const { newEvent, setNewEvent } = props
+  const { newEvent, setNewEvent, result } = props
 
   const handleSubCategoryChange = e => setNewEvent({ ...newEvent, subCategory: e.target.value })
   const handleOriginChange = e => setNewEvent({ ...newEvent, origin: e.target.value })
@@ -92,8 +93,10 @@ export default props => {
         <Grid item md>
           <TextField
             margin={matchesXS ? 'dense' : 'normal'}
+            required
             label="Origin"
             value={newEvent.origin}
+            error={!newEvent.origin && result.error}
             fullWidth
             onChange={handleOriginChange}
           />
@@ -102,13 +105,18 @@ export default props => {
         <Grid item md>
           <TextField
             margin={matchesXS ? 'dense' : 'normal'}
+            required
             label="Destination"
             value={newEvent.destination}
+            error={!newEvent.destination && result.error}
             fullWidth
             onChange={handleDestinationChange}
           />
         </Grid>
       </Grid>
+      <FormHelperText error={result.error}>
+        {result.message}
+      </FormHelperText>
 
       <Grid
         container

@@ -233,7 +233,7 @@ export default withAuth(props => {
                         ) : (
                           <Typography variant="body1">
                             {event.name}
-                            {matchesXS || event.category !== 'hotel'
+                            {matchesXS || event.category !== 'hotel' || !event.checkInTime
                               ? null
                               : ` (check-in: ${format(event.checkInTime, 'HH:mm')} -)`
                             }
@@ -271,7 +271,7 @@ export default withAuth(props => {
                         ) : (
                           <Typography variant="body1">
                             {event.name}
-                            {matchesXS || event.category !== 'hotel'
+                            {matchesXS || event.category !== 'hotel' || !event.checkOutTime
                               ? null
                               : ` (check-out: - ${format(event.checkOutTime, 'HH:mm')})`
                             }
