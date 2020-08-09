@@ -6,14 +6,19 @@ import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Grid from '@material-ui/core/Grid'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormHelperText from '@material-ui/core/FormHelperText'
+import InputAdornment from '@material-ui/core/InputAdornment'
 import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
 const useStyle = makeStyles(theme => ({
   formControlLabel: {
     marginTop: theme.spacing(1.5),
     marginBottom: theme.spacing(0.75),
     marginLeft: 0,
+  },
+  link: {
+    color: theme.palette.primary.main,
   },
 }))
 
@@ -58,7 +63,7 @@ export default props => {
       <FormHelperText error={result.error}>
         {result.message}
       </FormHelperText>
-      
+
       <Grid
         container
         direction={matchesXS ? 'column' : 'row'}
@@ -116,6 +121,13 @@ export default props => {
         label="URL"
         value={newEvent.URL}
         fullWidth
+        InputProps={{
+          endAdornment: newEvent.URL ? (
+            <InputAdornment position="end" component="a" href={newEvent.URL} className={classes.link}>
+              <OpenInNewIcon />
+            </InputAdornment>
+          ) : null,
+        }}
         onChange={handleURLChange}
       />
 
