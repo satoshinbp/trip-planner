@@ -15,6 +15,9 @@ const useStyle = makeStyles(theme => ({
     marginTop: theme.spacing(1.5),
     marginBottom: theme.spacing(0.75),
     marginLeft: 0,
+    [theme.breakpoints.up('sm')]: {
+      marginTop: theme.spacing(3.5),
+    }
   },
 }))
 
@@ -22,7 +25,7 @@ export default props => {
   const classes = useStyle()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
-  const { newEvent, setNewEvent, result } = props
+  const { newEvent, setNewEvent, result, dates } = props
 
   const handleNameChange = e => setNewEvent({ ...newEvent, name: e.target.value })
   const handleStartTimeChange = time => {
@@ -77,7 +80,7 @@ export default props => {
       <Grid
         container
         direction={matchesXS ? 'column' : 'row'}
-        alignItems={matchesXS ? undefined : 'flex-end'}
+        alignItems={matchesXS ? undefined : 'flex-start'}
         spacing={matchesXS ? undefined : 2}
       >
         <Grid item md>
@@ -88,6 +91,8 @@ export default props => {
             ampm={false}
             format="yyyy/MM/dd HH:mm"
             value={newEvent.startTime}
+            minDate={dates[0]}
+            maxDate={dates[dates.length - 1]}
             autoOk
             fullWidth={matchesXS ? true : false}
             onChange={handleStartTimeChange}
@@ -103,6 +108,8 @@ export default props => {
             format="yyyy/MM/dd HH:mm"
             initialFocusedDate={newEvent.startTime}
             value={newEvent.endTime}
+            minDate={dates[0]}
+            maxDate={dates[dates.length - 1]}
             autoOk
             fullWidth={matchesXS ? true : false}
             onChange={handleEndTimeChange}
@@ -121,7 +128,12 @@ export default props => {
         </Hidden>
       </Grid>
 
-      <Grid container direction={matchesXS ? 'column' : 'row'} spacing={matchesXS ? undefined : 2}>
+      <Grid
+        container
+        direction={matchesXS ? 'column' : 'row'}
+        alignItems={matchesXS ? undefined : 'flex-start'}
+        spacing={matchesXS ? undefined : 2}
+      >
         <Grid item md={4}>
           <DateTimePicker
             margin={matchesXS ? 'dense' : 'normal'}
@@ -131,6 +143,8 @@ export default props => {
             clearable={true}
             initialFocusedDate={newEvent.startTime}
             value={newEvent.checkInTime}
+            minDate={dates[0]}
+            maxDate={dates[dates.length - 1]}
             autoOk
             fullWidth={matchesXS ? true : false}
             onChange={handleCheckInTimeChange}
@@ -146,6 +160,8 @@ export default props => {
             clearable={true}
             initialFocusedDate={newEvent.endTime}
             value={newEvent.checkOutTime}
+            minDate={dates[0]}
+            maxDate={dates[dates.length - 1]}
             autoOk
             fullWidth={matchesXS ? true : false}
             onChange={handleCheckOutTimeChange}

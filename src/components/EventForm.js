@@ -158,11 +158,7 @@ export default props => {
           setAction(def.action)
   
           eventsRef.add(newEvent).then(snapshot => {
-            setEvents([...events, { id: snapshot.id, ...newEvent }].sort((a, b) => {
-              if (isAfter(b.startTime, a.startTime)) return -1
-              if (isAfter(a.startTime, b.startTime)) return 1
-              return 0
-            }))
+            setEvents([...events, { id: snapshot.id, ...newEvent }])
             closeOutAction()
           })
           break
@@ -171,11 +167,7 @@ export default props => {
   
           eventsRef.doc(action.id).update(newEvent).then(() => {
             const untouchedEvents = events.filter(trip => trip.id !== action.id)
-            setEvents([...untouchedEvents, { id: action.id, ...newEvent }].sort((a, b) => {
-              if (isAfter(b.startTime, a.startTime)) return -1
-              if (isAfter(a.startTime, b.startTime)) return 1
-              return 0
-            }))
+            setEvents([...untouchedEvents, { id: action.id, ...newEvent }])
             closeOutAction()
           })
           break
@@ -211,15 +203,15 @@ export default props => {
   const renderContent = category => {
     switch (category) {
       case 'none':
-        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
+        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
       case 'restaurant':
-        return <Restaurant newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
+        return <Restaurant newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
       case 'hotel':
-        return <Hotel newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
+        return <Hotel newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
       case 'transportation':
-        return <Transportation newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
+        return <Transportation newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
       default:
-        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} />
+        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
     }
   }
 

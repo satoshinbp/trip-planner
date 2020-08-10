@@ -19,10 +19,13 @@ const useStyle = makeStyles(theme => ({
     marginTop: theme.spacing(1.5),
     marginBottom: theme.spacing(0.75),
     marginLeft: 0,
+    [theme.breakpoints.up('sm')]: {
+      marginTop: theme.spacing(3.5),
+    }
   },
   select: {
     minWidth: 120,
-    [theme.breakpoints.up("sm")]: {
+    [theme.breakpoints.up('sm')]: {
       marginLeft: theme.spacing(2),
     },
   },
@@ -36,7 +39,7 @@ export default props => {
   const classes = useStyle()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
-  const { newEvent, setNewEvent, result } = props
+  const { newEvent, setNewEvent, result, dates } = props
 
   const handleSubCategoryChange = e => setNewEvent({ ...newEvent, subCategory: e.target.value })
   const handleOriginChange = e => setNewEvent({ ...newEvent, origin: e.target.value })
@@ -87,7 +90,7 @@ export default props => {
       <Grid
         container
         direction={matchesXS ? 'column' : 'row'}
-        alignItems={matchesXS ? undefined : 'flex-end'}
+        alignItems={matchesXS ? undefined : 'flex-start'}
         spacing={matchesXS ? undefined : 2}
       >
         <Grid item md>
@@ -132,6 +135,8 @@ export default props => {
             ampm={false}
             format="yyyy/MM/dd HH:mm"
             value={newEvent.startTime}
+            minDate={dates[0]}
+            maxDate={dates[dates.length - 1]}
             autoOk
             fullWidth={matchesXS ? true : false}
             onChange={handleStartTimeChange}
@@ -147,6 +152,8 @@ export default props => {
             clearable={true}
             initialFocusedDate={newEvent.startTime}
             value={newEvent.endTime}
+            minDate={dates[0]}
+            maxDate={dates[dates.length - 1]}
             autoOk
             fullWidth={matchesXS ? true : false}
             onChange={handleEndTimeChange}
