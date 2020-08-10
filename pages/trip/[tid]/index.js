@@ -141,13 +141,15 @@ export default withAuth(props => {
   }, [])
 
   useEffect(() => {
-    const eventsData = events.map(event => (
+    const eventToBeSortedByStartTime = events.map(event => (
       { ...event, sortTime: event.startTime }
-    )).concat(events.filter(event =>
+    ))
+    const eventToBeSortedByEndTime = events.filter(event =>
       event.endTime && !isSameDay(event.startTime, event.endTime)
     ).map(event => (
       { ...event, sortTime: event.endTime }
-    )))
+    ))
+    const eventsData = eventToBeSortedByStartTime.concat(eventToBeSortedByEndTime)
     setSortedEvents(eventsData.sort((a, b) => {
       if (isAfter(b.sortTime, a.sortTime)) return -1
       if (isAfter(a.sortTime, b.sortTime)) return 1
@@ -270,8 +272,8 @@ export default withAuth(props => {
         ))}
 
         {sortedEvents.filter(event =>
-          !isWithinInterval(event.startTime, { start: dates[0], end: dates[dates.length - 1] })
-          && !isWithinInterval(event.endTime, { start: dates[0], end: dates[dates.length - 1] })
+          !isWithinInterval(event.startTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
+          && !isWithinInterval(event.endTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
         ).length !== 0 ? (
             <Accordion>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -283,8 +285,8 @@ export default withAuth(props => {
               <AccordionDetails>
                 <Grid container direction="column">
                   {sortedEvents.filter(event =>
-                    !isWithinInterval(event.startTime, { start: dates[0], end: dates[dates.length - 1] })
-                    && !isWithinInterval(event.endTime, { start: dates[0], end: dates[dates.length - 1] })
+                    !isWithinInterval(event.startTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
+                    && !isWithinInterval(event.endTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
                   ).map((event, i) => (
                     <React.Fragment key={event.id}>
                       {i === 0 ? null : <Divider className={classes.divider} />}
