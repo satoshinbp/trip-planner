@@ -16,7 +16,7 @@ export default [
   { name: 'Transportation', value: 'transportation', icon: <DirectionsTransitIcon color="primary" key="transportation" /> },
 ]
 
-export const transportationSubCategories = [
+export const transCategories = [
   { name: 'Walk', value: 'walk', icon: <DirectionsWalkIcon color="primary" key="walk" /> },
   { name: 'Bike', value: 'bike', icon: <DirectionsBikeIcon color="primary" key="bike" /> },
   { name: 'Car', value: 'car', icon: <DirectionsCarIcon color="primary" key="car" /> },

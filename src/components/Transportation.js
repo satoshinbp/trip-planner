@@ -12,7 +12,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
-import { transportationSubCategories } from '../lib/eventCategories'
+import { transCategories } from '../lib/eventCategories'
 
 const useStyle = makeStyles(theme => ({
   formControlLabel: {
@@ -59,8 +59,6 @@ export default props => {
     }
   }
   const handleReservationChange = e => setNewEvent({ ...newEvent, reservation: e.target.checked })
-  const handleURLChange = e => setNewEvent({ ...newEvent, URL: e.target.value })
-  const handleNoteChange = e => setNewEvent({ ...newEvent, note: e.target.value })
 
   return (
     <>
@@ -72,7 +70,7 @@ export default props => {
           onChange={handleSubCategoryChange}
           className={classes.select}
         >
-          {transportationSubCategories.map(category => (
+          {transCategories.map(category => (
             <MenuItem value={category.value} key={category.value}>
               <Grid container>
                 <Grid item>
@@ -169,25 +167,6 @@ export default props => {
           />
         </Grid>
       </Grid>
-
-      <TextField
-        margin={matchesXS ? 'dense' : 'normal'}
-        label="URL"
-        value={newEvent.URL}
-        fullWidth
-        onChange={handleURLChange}
-      />
-
-      <TextField
-        margin={matchesXS ? 'dense' : 'normal'}
-        label="Note"
-        variant="outlined"
-        value={newEvent.note}
-        fullWidth
-        multiline
-        rows={3}
-        onChange={handleNoteChange}
-      />
     </>
   )
 }

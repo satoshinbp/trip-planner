@@ -16,8 +16,12 @@ const useStyles = makeStyles(theme => ({
   },
   fab: {
     position: 'fixed',
-    bottom: 50,
-    right: 30,
+    bottom: 28,
+    right: 20,
+    zIndex: theme.zIndex.appBar,
+  },
+  fabIcon: {
+    color: 'white',
   },
 }))
 
@@ -66,7 +70,7 @@ export default props => {
         </Hidden>
         <Hidden smUp>
           <Fab color="primary" className={classes.fab} onClick={handleAddTrip}>
-            <AddIcon size="small" />
+            <AddIcon size="small" className={classes.fabIcon} />
           </Fab>
         </Hidden>
       </Grid>

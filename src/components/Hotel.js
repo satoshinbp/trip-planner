@@ -58,8 +58,6 @@ export default props => {
   }
   const handleAddressChange = e => setNewEvent({ ...newEvent, address: e.target.value })
   const handleReservationChange = e => setNewEvent({ ...newEvent, reservation: e.target.checked })
-  const handleURLChange = e => setNewEvent({ ...newEvent, URL: e.target.value })
-  const handleNoteChange = e => setNewEvent({ ...newEvent, note: e.target.value })
 
   return (
     <>
@@ -184,25 +182,6 @@ export default props => {
         value={newEvent.address}
         fullWidth
         onChange={handleAddressChange}
-      />
-
-      <TextField
-        margin={matchesXS ? 'dense' : 'normal'}
-        label="URL"
-        value={newEvent.URL}
-        fullWidth
-        onChange={handleURLChange}
-      />
-
-      <TextField
-        margin={matchesXS ? 'dense' : 'normal'}
-        label="Note"
-        variant="outlined"
-        value={newEvent.note}
-        fullWidth
-        multiline
-        rows={3}
-        onChange={handleNoteChange}
       />
     </>
   )

@@ -11,11 +11,13 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import FormControl from '@material-ui/core/FormControl'
 import Grid from '@material-ui/core/Grid'
+import InputAdornment from '@material-ui/core/InputAdornment'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import MenuItem from '@material-ui/core/MenuItem'
 import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import DeleteIcon from '@material-ui/icons/Delete'
+import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import SaveIcon from '@material-ui/icons/Save'
 import None from './None'
 import Restaurant from './Restaurant'
@@ -33,6 +35,9 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     alignItems: 'center',
   },
+  link: {
+    color: theme.palette.primary.main,
+  },
 }))
 
 export default props => {
@@ -42,7 +47,6 @@ export default props => {
   const { tid, dates, events, setEvents, action, setAction, setIsLoading } = props
 
   const def = {
-    isLoading: { deep: false, shallow: false },
     event: {
       category: 'none',
       name: '',
@@ -86,6 +90,7 @@ export default props => {
       URL: '',
       note: '',
     },
+    isLoading: { deep: false, shallow: false },
     action: { mode: '', id: '' },
     result: { error: false, message: '' },
   }
@@ -95,16 +100,6 @@ export default props => {
   const user = firebase.auth().currentUser
   const eventsRef = db.collection('users').doc(user.uid).collection('trips').doc(tid).collection('events')
 
-  const clearState = () => {
-    setAction(def.action)
-    setNewEvent(def.event)
-    setResult(def.result)
-  }
-  const closeOutAction = () => {
-    setIsLoading(def.isLoading)
-    setNewEvent(def.event)
-    setResult(def.result)
-  }
   const resultCheck = () => {
     switch (newEvent.category) {
       case 'none':
@@ -150,30 +145,40 @@ export default props => {
         return false
     }
   }
+
   const handleAction = () => {
     if (resultCheck()) {
       setIsLoading({ deep: false, shallow: true })
       switch (action.mode) {
         case 'add':
           setAction(def.action)
-  
+
           eventsRef.add(newEvent).then(snapshot => {
-            setEvents([...events, { id: snapshot.id, ...newEvent }])
-            closeOutAction()
+            setEvents([...events, { id: snapshot.id, ...newEvent }].sort((a, b) => {
+              if (isAfter(b.startTime, a.startTime)) return -1
+              if (isAfter(a.startTime, b.startTime)) return 1
+              return 0
+            }))
+            setIsLoading(def.isLoading)
           })
           break
         case 'edit':
           setAction(def.action)
-  
+
           eventsRef.doc(action.id).update(newEvent).then(() => {
             const untouchedEvents = events.filter(trip => trip.id !== action.id)
-            setEvents([...untouchedEvents, { id: action.id, ...newEvent }])
-            closeOutAction()
+            setEvents([...untouchedEvents, { id: action.id, ...newEvent }].sort((a, b) => {
+              if (isAfter(b.startTime, a.startTime)) return -1
+              if (isAfter(a.startTime, b.startTime)) return 1
+              return 0
+            }))
+            setIsLoading(def.isLoading)
           })
           break
       }
     }
   }
+
   const handleDelete = () => {
     setIsLoading({ deep: false, shallow: true })
     setAction({ ...action, mode: '' })
@@ -181,9 +186,10 @@ export default props => {
     eventsRef.doc(action.id).delete().then(() => {
       setEvents(events.filter(event => event.id !== action.id))
       setAction(def.action)
-      closeOutAction()
+      setIsLoading(def.isLoading)
     })
   }
+
   const handleCategoryChange = e => {
     switch (e.target.value) {
       case 'none':
@@ -200,6 +206,11 @@ export default props => {
         break
     }
   }
+
+  const handleURLChange = e => setNewEvent({ ...newEvent, URL: e.target.value })
+
+  const handleNoteChange = e => setNewEvent({ ...newEvent, note: e.target.value })
+
   const renderContent = category => {
     switch (category) {
       case 'none':
@@ -231,8 +242,8 @@ export default props => {
 
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <Dialog open={Boolean(action.mode)} onClose={clearState}>
-        <DialogTitle>New Event</DialogTitle>
+      <Dialog open={Boolean(action.mode)} onClose={() => setAction(def.action)}>
+        <DialogTitle>{action.mode === 'edit' ? 'Edit Event' : 'Add Event'}</DialogTitle>
 
         <DialogContent>
           <FormControl margin={matchesXS ? 'dense' : 'normal'}>
@@ -257,11 +268,38 @@ export default props => {
               ))}
             </TextField>
           </FormControl>
+
           {renderContent(newEvent.category)}
+
+          <TextField
+            margin={matchesXS ? 'dense' : 'normal'}
+            label="URL"
+            value={newEvent.URL}
+            fullWidth
+            InputProps={{
+              endAdornment: newEvent.URL ? (
+                <InputAdornment position="end" component="a" href={newEvent.URL} className={classes.link}>
+                  <OpenInNewIcon />
+                </InputAdornment>
+              ) : null,
+            }}
+            onChange={handleURLChange}
+          />
+
+          <TextField
+            margin={matchesXS ? 'dense' : 'normal'}
+            label="Note"
+            variant="outlined"
+            value={newEvent.note}
+            fullWidth
+            multiline
+            rows={3}
+            onChange={handleNoteChange}
+          />
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={clearState} color="primary">Cancel</Button>
+          <Button onClick={() => setAction(def.action)} color="primary">Cancel</Button>
           {action.mode === 'add'
             ? (
               <Button variant="contained" color="primary" onClick={handleAction}>

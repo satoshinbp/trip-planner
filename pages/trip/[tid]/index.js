@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, forwardRef } from 'react'
 import { useRouter } from 'next/router'
 import { format, isAfter, addDays, isSameDay, startOfDay, isWithinInterval, isSameMinute } from 'date-fns'
 import { makeStyles, useTheme } from '@material-ui/core/styles'
@@ -10,22 +10,27 @@ import Backdrop from '@material-ui/core/Backdrop'
 import Button from '@material-ui/core/Button'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Container from '@material-ui/core/Container'
+import Dialog from '@material-ui/core/Dialog'
 import Divider from '@material-ui/core/Divider'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import Fab from '@material-ui/core/Fab'
 import Grid from '@material-ui/core/Grid'
 import Hidden from '@material-ui/core/Hidden'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
+import Slide from '@material-ui/core/Slide'
 import Typography from '@material-ui/core/Typography'
 import AddIcon from '@material-ui/icons/Add'
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
+import MapIcon from '@material-ui/icons/Map'
 import withAuth from '../../../src/withAuth'
-import EventForm from '../../../src/components/EventForm'
-import Footer from '../../../src/components/Footer'
-import Header from '../../../src/components/Header'
 import LoadingPage from '../../../src/components/LoadingPage'
-import db from '../../../src/lib/db'
-import categories, { transportationSubCategories } from '../../../src/lib/eventCategories'
+import Header from '../../../src/components/Header'
+import Footer from '../../../src/components/Footer'
+import Map from '../../../src/components/Map'
+import EventForm from '../../../src/components/EventForm'
 import firebase from '../../../src/lib/firebase'
+import db from '../../../src/lib/db'
+import categories, { transCategories } from '../../../src/lib/eventCategories'
 
 const useStyles = makeStyles(theme => ({
   container: {
@@ -33,7 +38,7 @@ const useStyles = makeStyles(theme => ({
     paddingBottom: theme.spacing(5.5),
     [theme.breakpoints.down("xs")]: {
       padding: theme.spacing(2),
-      paddingBottom: theme.spacing(4.5),
+      paddingBottom: theme.spacing(11.5),
     },
   },
   title: {
@@ -56,8 +61,19 @@ const useStyles = makeStyles(theme => ({
   },
   fab: {
     position: 'fixed',
-    bottom: 50,
-    right: 30,
+    bottom: 28,
+    right: 20,
+    zIndex: theme.zIndex.appBar,
+  },
+  iconBtn: {
+    color: 'white',
+  },
+  btnBar: {
+    borderRadius: 0,
+    height: 20,
+    '&:hover': {
+      backgroundColor: theme.palette.primary.main,
+    }
   },
   time: {
     width: 120,
@@ -71,6 +87,9 @@ const useStyles = makeStyles(theme => ({
   },
   link: {
     cursor: 'pointer',
+  },
+  button: {
+    marginTop: theme.spacing(1),
   },
 }))
 
@@ -87,10 +106,15 @@ export default withAuth(props => {
   const [events, setEvents] = useState([])
   const [sortedEvents, setSortedEvents] = useState([])
   const [action, setAction] = useState({ mode: '', id: '' })
+  const [mapOpen, setMapOpen] = useState(false)
 
   const handleAddEvent = () => setAction({ mode: 'add', id: '' })
   const handleEditEvent = id => () => setAction({ mode: 'edit', id })
-  const handleClose = () => setIsLoading({ deep: false, shallow: false })
+
+  const handleMapOpen = () => setMapOpen(true)
+  const handleMapClose = () => setMapOpen(false)
+
+  const handleLoadingClose = () => setIsLoading({ deep: false, shallow: false })
 
   useEffect(() => {
     let unmounted = false
@@ -113,7 +137,7 @@ export default withAuth(props => {
         datesData.push(date)
       }
 
-      eventsRef.get().then(snapshot => {
+      eventsRef.orderBy('startTime').get().then(snapshot => {
         const eventsData = []
         snapshot.forEach(childSnapshot => {
           eventsData.push({
@@ -178,14 +202,25 @@ export default withAuth(props => {
             </Typography>
           </Grid>
           <Grid item>
-            <Hidden xsDown>
-              <Button variant="contained" color="primary" onClick={handleAddEvent}>Add a Event</Button>
-            </Hidden>
-            <Hidden smUp>
-              <Fab color="primary" className={classes.fab} onClick={handleAddEvent}>
-                <AddIcon size="small" />
-              </Fab>
-            </Hidden>
+            <Grid container direction="column" alignItems="flex-end">
+              <Grid item>
+                <Button variant="outlined" color="primary" startIcon={<MapIcon />} onClick={handleMapOpen}>
+                  Map
+                </Button>
+              </Grid>
+              <Grid item>
+                <Hidden xsDown>
+                  <Button variant="contained" color="primary" className={classes.button} onClick={handleAddEvent}>
+                    Add a Event
+                  </Button>
+                </Hidden>
+                <Hidden smUp>
+                  <Fab color="primary" className={classes.fab} onClick={handleAddEvent}>
+                    <AddIcon size="small" className={classes.iconBtn} />
+                  </Fab>
+                </Hidden>
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
 
@@ -236,7 +271,7 @@ export default withAuth(props => {
                           ? categories.map(category =>
                             category.value === event.category ? category.icon : null
                           )
-                          : transportationSubCategories.map(category =>
+                          : transCategories.map(category =>
                             category.value === event.subCategory ? category.icon : null
                           )
                         }
@@ -270,7 +305,6 @@ export default withAuth(props => {
             </AccordionDetails>
           </Accordion>
         ))}
-
         {sortedEvents.filter(event =>
           !isWithinInterval(event.startTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
           && !isWithinInterval(event.endTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
@@ -346,6 +380,26 @@ export default withAuth(props => {
           ) : null}
       </Container>
 
+      <Dialog
+        fullScreen
+        open={mapOpen}
+        onClose={handleMapClose}
+        TransitionComponent={Slide}
+        TransitionProps={{ direction: 'up' }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          disableRipple={true}
+          onClick={handleMapClose}
+          className={classes.btnBar}
+        >
+          <ArrowDropDownIcon size="large" className={classes.iconBtn} />
+        </Button>
+        <Map {...props} tid={tid} events={events} />
+      </Dialog>
+
       <EventForm
         {...props}
         tid={tid}
@@ -357,7 +411,7 @@ export default withAuth(props => {
         setAction={setAction}
       />
 
-      <Backdrop className={classes.backdrop} open={isLoading.shallow} onClick={handleClose}>
+      <Backdrop className={classes.backdrop} open={isLoading.shallow} onClick={handleLoadingClose}>
         <CircularProgress color="inherit" />
       </Backdrop>
 

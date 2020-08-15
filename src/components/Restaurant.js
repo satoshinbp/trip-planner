@@ -6,10 +6,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Grid from '@material-ui/core/Grid'
 import FormControlLabel from '@material-ui/core/FormControlLabel'
 import FormHelperText from '@material-ui/core/FormHelperText'
-import InputAdornment from '@material-ui/core/InputAdornment'
 import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
-import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 
 const useStyle = makeStyles(theme => ({
   formControlLabel: {
@@ -19,9 +17,6 @@ const useStyle = makeStyles(theme => ({
     [theme.breakpoints.up('sm')]: {
       marginTop: theme.spacing(3.5),
     }
-  },
-  link: {
-    color: theme.palette.primary.main,
   },
 }))
 
@@ -48,8 +43,6 @@ export default props => {
   }
   const handleAddressChange = e => setNewEvent({ ...newEvent, address: e.target.value })
   const handleReservationChange = e => setNewEvent({ ...newEvent, reservation: e.target.checked })
-  const handleURLChange = e => setNewEvent({ ...newEvent, URL: e.target.value })
-  const handleNoteChange = e => setNewEvent({ ...newEvent, note: e.target.value })
 
   return (
     <>
@@ -121,32 +114,6 @@ export default props => {
         value={newEvent.address}
         fullWidth
         onChange={handleAddressChange}
-      />
-
-      <TextField
-        margin={matchesXS ? 'dense' : 'normal'}
-        label="URL"
-        value={newEvent.URL}
-        fullWidth
-        InputProps={{
-          endAdornment: newEvent.URL ? (
-            <InputAdornment position="end" component="a" href={newEvent.URL} className={classes.link}>
-              <OpenInNewIcon />
-            </InputAdornment>
-          ) : null,
-        }}
-        onChange={handleURLChange}
-      />
-
-      <TextField
-        margin={matchesXS ? 'dense' : 'normal'}
-        label="Note"
-        variant="outlined"
-        value={newEvent.note}
-        fullWidth
-        multiline
-        rows={3}
-        onChange={handleNoteChange}
       />
     </>
   )
