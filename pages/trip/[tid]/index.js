@@ -10,14 +10,13 @@ import Backdrop from '@material-ui/core/Backdrop'
 import Button from '@material-ui/core/Button'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import Container from '@material-ui/core/Container'
-import Dialog from '@material-ui/core/Dialog'
 import Divider from '@material-ui/core/Divider'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import Fab from '@material-ui/core/Fab'
 import Grid from '@material-ui/core/Grid'
 import Hidden from '@material-ui/core/Hidden'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import Slide from '@material-ui/core/Slide'
+import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
 import Typography from '@material-ui/core/Typography'
 import AddIcon from '@material-ui/icons/Add'
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
@@ -70,7 +69,6 @@ const useStyles = makeStyles(theme => ({
   },
   btnBar: {
     borderRadius: 0,
-    height: 20,
     '&:hover': {
       backgroundColor: theme.palette.primary.main,
     }
@@ -88,7 +86,7 @@ const useStyles = makeStyles(theme => ({
   link: {
     cursor: 'pointer',
   },
-  button: {
+  btn: {
     marginTop: theme.spacing(1),
   },
 }))
@@ -113,6 +111,14 @@ export default withAuth(props => {
 
   const handleMapOpen = () => setMapOpen(true)
   const handleMapClose = () => setMapOpen(false)
+
+  const toggleDrawer = open => e => {
+    if (e && e.type === 'keydown' && (e.key === 'Tab' || e.key === 'Shift')) {
+      return
+    }
+
+    setMapOpen(open)
+  }
 
   const handleLoadingClose = () => setIsLoading({ deep: false, shallow: false })
 
@@ -210,7 +216,7 @@ export default withAuth(props => {
               </Grid>
               <Grid item>
                 <Hidden xsDown>
-                  <Button variant="contained" color="primary" className={classes.button} onClick={handleAddEvent}>
+                  <Button variant="contained" color="primary" className={classes.btn} onClick={handleAddEvent}>
                     Add a Event
                   </Button>
                 </Hidden>
@@ -380,17 +386,17 @@ export default withAuth(props => {
           ) : null}
       </Container>
 
-      <Dialog
-        fullScreen
+      <SwipeableDrawer
+        anchor="bottom"
         open={mapOpen}
-        onClose={handleMapClose}
-        TransitionComponent={Slide}
-        TransitionProps={{ direction: 'up' }}
+        onClose={toggleDrawer(false)}
+        onOpen={toggleDrawer(true)}
       >
         <Button
           variant="contained"
           color="primary"
           fullWidth
+          size="small"
           disableRipple={true}
           onClick={handleMapClose}
           className={classes.btnBar}
@@ -398,7 +404,7 @@ export default withAuth(props => {
           <ArrowDropDownIcon size="large" className={classes.iconBtn} />
         </Button>
         <Map {...props} tid={tid} events={events} />
-      </Dialog>
+      </SwipeableDrawer>
 
       <EventForm
         {...props}
