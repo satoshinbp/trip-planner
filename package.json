@@ -20,6 +20,7 @@
     "prop-types": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-places-autocomplete": "^7.3.0",
     "uuid": "^8.2.0"
   },
   "scripts": {

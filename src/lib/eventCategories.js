@@ -4,14 +4,20 @@ import DirectionsBusIcon from '@material-ui/icons/DirectionsBus'
 import DirectionsCarIcon from '@material-ui/icons/DirectionsCar'
 import DirectionsTransitIcon from '@material-ui/icons/DirectionsTransit'
 import DirectionsWalkIcon from '@material-ui/icons/DirectionsWalk'
+import FlagIcon from '@material-ui/icons/Flag'
 import FlightIcon from '@material-ui/icons/Flight'
 import HotelIcon from '@material-ui/icons/Hotel'
 import RestaurantIcon from '@material-ui/icons/Restaurant'
+import ShoppingCartIcon from '@material-ui/icons/ShoppingCart'
+import TheatersIcon from '@material-ui/icons/Theaters'
 import TripOriginIcon from '@material-ui/icons/TripOrigin'
 
 export default [
   { name: 'None', value: 'none', icon: <TripOriginIcon color="primary" key="none" /> },
+  { name: 'Tour', value: 'tour', icon: <FlagIcon color="primary" key="tour" /> },
   { name: 'Restaurant', value: 'restaurant', icon: <RestaurantIcon color="primary" key="restaurant" /> },
+  { name: 'Shopping', value: 'shopping', icon: <ShoppingCartIcon color="primary" key="shopping" /> },
+  { name: 'Cinema', value: 'cinema', icon: <TheatersIcon color="primary" key="cinema" /> },
   { name: 'Hotel', value: 'hotel', icon: <HotelIcon color="primary" key="hotel" /> },
   { name: 'Transportation', value: 'transportation', icon: <DirectionsTransitIcon color="primary" key="transportation" /> },
 ]

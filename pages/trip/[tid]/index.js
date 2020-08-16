@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { format, isAfter, addDays, isSameDay, startOfDay, isWithinInterval, isSameMinute } from 'date-fns'
 import { makeStyles, useTheme } from '@material-ui/core/styles'
@@ -69,6 +69,9 @@ const useStyles = makeStyles(theme => ({
   },
   btnBar: {
     borderRadius: 0,
+    [theme.breakpoints.up('md')]: {
+      height: 20,
+    },
     '&:hover': {
       backgroundColor: theme.palette.primary.main,
     }
@@ -121,6 +124,195 @@ export default withAuth(props => {
   }
 
   const handleLoadingClose = () => setIsLoading({ deep: false, shallow: false })
+
+  const TripSummary = () => (
+    <Grid container justify="space-between" alignItems="flex-end" className={classes.title}>
+      <Grid item>
+        <Typography variant="h4" component="span">
+          {trip.title}
+        </Typography>
+        {trip.location && !matchesXS && (
+          <Typography variant="h6" component="span">
+            &nbsp;@{trip.location}
+          </Typography>
+        )}
+        <Typography variant="h6">
+          {format(trip.startDate, 'yyyy/MM/dd')} - {format(trip.endDate, 'yyyy/MM/dd')}
+        </Typography>
+      </Grid>
+      <Grid item>
+        <Grid container direction="column" alignItems="flex-end">
+          <Grid item>
+            <Button variant="outlined" color="primary" startIcon={<MapIcon />} onClick={handleMapOpen}>
+              Map
+            </Button>
+          </Grid>
+          <Grid item>
+            <Hidden xsDown>
+              <Button variant="contained" color="primary" className={classes.btn} onClick={handleAddEvent}>
+                Add a Event
+              </Button>
+            </Hidden>
+            <Hidden smUp>
+              <Fab color="primary" className={classes.fab} onClick={handleAddEvent}>
+                <AddIcon size="small" className={classes.iconBtn} />
+              </Fab>
+            </Hidden>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
+  )
+
+  const EventAccordions = () => {
+    const datesStart = dates[0]
+    const datesEnd = addDays(dates[dates.length - 1], 1)
+    const outOfDatesEvents = sortedEvents.filter(event =>
+      !isWithinInterval(event.startTime, { start: datesStart, end: datesEnd })
+      && !isWithinInterval(event.endTime, { start: datesStart, end: datesEnd })
+    )
+
+    return (
+      <>
+        {dates.map(date => {
+          const thisDateEvents = sortedEvents.filter(event => isSameDay(event.sortTime, date))
+
+          return (
+            <Accordion key={date} defaultExpanded={thisDateEvents.length !== 0 ? true : false}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography className={classes.heading}>
+                  {format(date, 'yyyy/MM/dd')}
+                </Typography>
+              </AccordionSummary>
+              <Divider className={classes.dividerTop} />
+              <AccordionDetails>
+                <Grid container direction="column">
+                  {thisDateEvents.map((event, i) => (
+                    <React.Fragment key={event.id}>
+                      {i !== 0 && <Divider className={classes.divider} />}
+                      <Grid item container className={classes.link} alignItems="center" onClick={handleEditEvent(event.id)}>
+                        <Grid item className={classes.time}>
+                          {event.sortTime === event.endTime
+                            ? (
+                              <Typography variant="body1">
+                                &nbsp;- {format(event.endTime, 'HH:mm')}
+                              </Typography>
+                            ) : !isSameDay(event.startTime, event.endTime)
+                              ? (
+                                <Typography variant="body1">
+                                  {format(event.startTime, 'HH:mm')} -
+                                </Typography>
+                              ) : !matchesXS
+                                ? (
+                                  <Typography variant="body1">
+                                    {format(event.startTime, 'HH:mm')} - {format(event.endTime, 'HH:mm')}
+                                  </Typography>
+                                ) : <>
+                                  <Typography variant="body1">
+                                    {format(event.startTime, 'HH:mm')}
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    &nbsp;- {format(event.endTime, 'HH:mm')}
+                                  </Typography>
+                                </>
+                          }
+                        </Grid>
+                        <ListItemIcon className={classes.icon}>
+                          {event.category !== 'transportation'
+                            ? categories.map(category => category.value === event.category && category.icon)
+                            : transCategories.map(category => category.value === event.subCategory && category.icon)
+                          }
+                        </ListItemIcon>
+                        {event.category === 'transportation'
+                          ? (
+                            <Typography variant="body1">
+                              {event.origin} → {event.destination}
+                            </Typography>
+                          ) : (
+                            event.category === 'hotel'
+                              ? (
+                                <Typography variant="body1">
+                                  {event.name}
+                                  {!matchesXS && event.sortTime === event.startTime
+                                    ? ` (check-in: ${format(event.checkInTime, 'HH:mm')} -)`
+                                    : ` (check-out: - ${format(event.checkOutTime, 'HH:mm')})`
+                                  }
+                                </Typography>
+                              ) : (
+                                <Typography variant="body1">
+                                  {event.name}
+                                </Typography>
+                              )
+                          )}
+                      </Grid>
+                    </React.Fragment>
+                  ))}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          )
+        })}
+
+        {outOfDatesEvents.length !== 0 && (
+          <Accordion>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography className={classes.heading}>Out of Range</Typography>
+            </AccordionSummary>
+            <Divider className={classes.dividerTop} />
+            <AccordionDetails>
+              <Grid container direction="column">
+                {outOfDatesEvents.map((event, i) => (
+                  <React.Fragment key={event.id}>
+                    {i !== 0 && <Divider className={classes.divider} />}
+                    <Grid item container className={classes.link} alignItems="center" onClick={handleEditEvent(event.id)}>
+                      <Grid item className={classes.time}>
+                        {matchesXS
+                          ? <>
+                            <Typography variant="body1">
+                              {format(event.startTime, 'MM/dd')}
+                            </Typography>
+                            {event.endTime && !isSameDay(event.startTime, event.endTime) && (
+                              <Typography variant="body2">
+                                &nbsp;- {format(event.endTime, 'MM/dd')}
+                              </Typography>
+                            )}
+                          </> : (
+                            <Typography variant="body1">
+                              {format(event.startTime, 'MM/dd')}
+                              {event.endTime && !isSameDay(event.startTime, event.endTime) && (
+                                ` - ${format(event.endTime, 'MM/dd')}`
+                              )}
+                            </Typography>
+                          )
+                        }
+                      </Grid>
+                      <ListItemIcon className={classes.icon}>
+                        {event.category !== 'transportation'
+                          ? categories.map(category => category.value === event.category && category.icon)
+                          : transportationSubCategories.map(category => category.value === event.subCategory && category.icon)
+                        }
+                      </ListItemIcon>
+                      {event.category === 'transportation'
+                        ? (
+                          <Typography variant="body1">
+                            {event.origin} → {event.destination}
+                          </Typography>
+                        ) : (
+                          <Typography variant="body1">
+                            {event.name}
+                          </Typography>
+                        )}
+                    </Grid>
+                  </React.Fragment>
+                ))}
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+        )
+        }
+      </>
+    )
+  }
 
   useEffect(() => {
     let unmounted = false
@@ -192,206 +384,11 @@ export default withAuth(props => {
       <Header {...props} />
 
       <Container className={classes.container}>
-        <Grid
-          container
-          justify="space-between"
-          alignItems="flex-end"
-          className={classes.title}
-        >
-          <Grid item>
-            <Typography variant="h4" component="span">{trip.title}</Typography>
-            {trip.location && !matchesXS ? (
-              <Typography variant="h6" component="span">&nbsp;@{trip.location}</Typography>
-            ) : null}
-            <Typography variant="h6">
-              {format(trip.startDate, 'yyyy/MM/dd')} - {format(trip.endDate, 'yyyy/MM/dd')}
-            </Typography>
-          </Grid>
-          <Grid item>
-            <Grid container direction="column" alignItems="flex-end">
-              <Grid item>
-                <Button variant="outlined" color="primary" startIcon={<MapIcon />} onClick={handleMapOpen}>
-                  Map
-                </Button>
-              </Grid>
-              <Grid item>
-                <Hidden xsDown>
-                  <Button variant="contained" color="primary" className={classes.btn} onClick={handleAddEvent}>
-                    Add a Event
-                  </Button>
-                </Hidden>
-                <Hidden smUp>
-                  <Fab color="primary" className={classes.fab} onClick={handleAddEvent}>
-                    <AddIcon size="small" className={classes.iconBtn} />
-                  </Fab>
-                </Hidden>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-
-        {dates.map(date => (
-          <Accordion key={date}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography className={classes.heading}>{format(date, 'yyyy/MM/dd')}</Typography>
-            </AccordionSummary>
-
-            <Divider className={classes.dividerTop} />
-
-            <AccordionDetails>
-              <Grid container direction="column">
-                {sortedEvents.filter(event => isSameDay(event.sortTime, date)).map((event, i) => (
-                  <React.Fragment key={event.id}>
-                    {i === 0 ? null : <Divider className={classes.divider} />}
-                    <Grid item container className={classes.link} alignItems="center" onClick={handleEditEvent(event.id)}>
-                      <Grid item className={classes.time}>
-                        {event.sortTime === event.endTime
-                          ? (
-                            <Typography variant="body1">
-                              &nbsp;- {format(event.endTime, 'HH:mm')}
-                            </Typography>
-                          ) : !isSameDay(event.startTime, event.endTime)
-                            ? (
-                              <Typography variant="body1">
-                                {format(event.startTime, 'HH:mm')} -
-                              </Typography>
-                            ) : !matchesXS
-                              ? (
-                                <Typography variant="body1">
-                                  {format(event.startTime, 'HH:mm')} - {format(event.endTime, 'HH:mm')}
-                                </Typography>
-                              ) : (
-                                <>
-                                  <Typography variant="body1">
-                                    {format(event.startTime, 'HH:mm')}
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    &nbsp;- {format(event.endTime, 'HH:mm')}
-                                  </Typography>
-                                </>
-                              )
-                        }
-                      </Grid>
-                      <ListItemIcon className={classes.icon}>
-                        {event.category !== 'transportation'
-                          ? categories.map(category =>
-                            category.value === event.category ? category.icon : null
-                          )
-                          : transCategories.map(category =>
-                            category.value === event.subCategory ? category.icon : null
-                          )
-                        }
-                      </ListItemIcon>
-                      {event.category === 'transportation'
-                        ? (
-                          <Typography variant="body1">
-                            {event.origin} → {event.destination}
-                          </Typography>
-                        ) : event.category === 'hotel'
-                          ? (
-                            <Typography variant="body1">
-                              {event.name}
-                              {matchesXS
-                                ? null
-                                : event.sortTime === event.startTime
-                                  ? ` (check-in: ${format(event.checkInTime, 'HH:mm')} -)`
-                                  : ` (check-out: - ${format(event.checkOutTime, 'HH:mm')})`
-                              }
-                            </Typography>
-                          ) : (
-                            <Typography variant="body1">
-                              {event.name}
-                            </Typography>
-                          )
-                      }
-                    </Grid>
-                  </React.Fragment>
-                ))}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-        ))}
-        {sortedEvents.filter(event =>
-          !isWithinInterval(event.startTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
-          && !isWithinInterval(event.endTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
-        ).length !== 0 ? (
-            <Accordion>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography className={classes.heading}>Out of Range</Typography>
-              </AccordionSummary>
-
-              <Divider className={classes.dividerTop} />
-
-              <AccordionDetails>
-                <Grid container direction="column">
-                  {sortedEvents.filter(event =>
-                    !isWithinInterval(event.startTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
-                    && !isWithinInterval(event.endTime, { start: dates[0], end: addDays(dates[dates.length - 1], 1) })
-                  ).map((event, i) => (
-                    <React.Fragment key={event.id}>
-                      {i === 0 ? null : <Divider className={classes.divider} />}
-                      <Grid item container className={classes.link} alignItems="center" onClick={handleEditEvent(event.id)}>
-                        <Grid item className={classes.time}>
-                          {matchesXS
-                            ? (
-                              <>
-                                <Typography variant="body1">
-                                  {format(event.startTime, 'MM/dd')}
-                                </Typography>
-                                {!event.endTime || isSameDay(event.startTime, event.endTime)
-                                  ? null : (
-                                    <Typography variant="body2">
-                                      &nbsp;- {format(event.endTime, 'MM/dd')}
-                                    </Typography>
-                                  )
-                                }
-                              </>
-                            ) : (
-                              <Typography variant="body1">
-                                {format(event.startTime, 'MM/dd')}
-                                {!event.endTime || isSameDay(event.startTime, event.endTime)
-                                  ? null
-                                  : ` - ${format(event.endTime, 'MM/dd')}`
-                                }
-                              </Typography>
-                            )
-                          }
-                        </Grid>
-                        <ListItemIcon className={classes.icon}>
-                          {event.category !== 'transportation'
-                            ? categories.map(category =>
-                              category.value === event.category ? category.icon : null
-                            )
-                            : transportationSubCategories.map(category =>
-                              category.value === event.subCategory ? category.icon : null
-                            )
-                          }
-                        </ListItemIcon>
-                        {event.category === 'transportation'
-                          ? (
-                            <Typography variant="body1">
-                              {event.origin} → {event.destination}
-                            </Typography>
-                          ) : (
-                            <Typography variant="body1">
-                              {event.name}
-                            </Typography>
-                          )}
-                      </Grid>
-                    </React.Fragment>
-                  ))}
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          ) : null}
+        <TripSummary />
+        <EventAccordions />
       </Container>
 
-      <SwipeableDrawer
-        anchor="bottom"
-        open={mapOpen}
-        onClose={toggleDrawer(false)}
-        onOpen={toggleDrawer(true)}
-      >
+      <SwipeableDrawer anchor="bottom" open={mapOpen} onClose={toggleDrawer(false)} onOpen={toggleDrawer(true)}>
         <Button
           variant="contained"
           color="primary"

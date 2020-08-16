@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { isAfter, setHours } from 'date-fns'
 import DateFnsUtils from '@date-io/date-fns'
-import { MuiPickersUtilsProvider, DateTimePicker } from '@material-ui/pickers'
+import { MuiPickersUtilsProvider } from '@material-ui/pickers'
 import { makeStyles, useTheme } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Button from '@material-ui/core/Button'
@@ -20,7 +20,6 @@ import DeleteIcon from '@material-ui/icons/Delete'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import SaveIcon from '@material-ui/icons/Save'
 import None from './None'
-import Restaurant from './Restaurant'
 import Hotel from './Hotel'
 import Transportation from './Transportation'
 import db from '../lib/db'
@@ -29,7 +28,9 @@ import firebase from '../lib/firebase'
 
 const useStyles = makeStyles(theme => ({
   select: {
-    minWidth: 120,
+    [theme.breakpoints.up('sm')]: {
+      width: 250,
+    },
   },
   icon: {
     display: 'flex',
@@ -44,29 +45,24 @@ export default props => {
   const classes = useStyles()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
-  const { tid, dates, events, setEvents, action, setAction, setIsLoading } = props
+  const { tid, dates, setIsLoading, events, setEvents, action, setAction } = props
+
+  const eventBase = {
+    name: '',
+    startTime: dates[0],
+    endTime: null,
+    location: { address: '', lat: undefined, lng: undefined },
+    reservation: false,
+    URL: '',
+    note: '',
+  }
 
   const def = {
-    event: {
-      category: 'none',
-      name: '',
-      startTime: dates[0],
-      endTime: null,
-      address: '',
-      reservation: false,
-      URL: '',
-      note: '',
-    },
-    restaurant: {
-      category: 'restaurant',
-      name: '',
-      startTime: dates[0],
-      endTime: null,
-      address: '',
-      reservation: false,
-      URL: '',
-      note: '',
-    },
+    event: { category: 'none', ...eventBase },
+    tour: { category: 'tour', ...eventBase },
+    cinema: { category: 'cinema', ...eventBase },
+    restaurant: { category: 'restaurant', ...eventBase },
+    shopping: { category: 'shopping', ...eventBase },
     hotel: {
       category: 'hotel',
       name: '',
@@ -74,7 +70,7 @@ export default props => {
       endTime: setHours(dates[1], 10),
       checkInTime: null,
       checkOutTime: null,
-      address: '',
+      location: { address: '', lat: undefined, lng: undefined },
       reservation: false,
       URL: '',
       note: '',
@@ -82,8 +78,8 @@ export default props => {
     transportation: {
       category: 'transportation',
       subCategory: 'walk',
-      origin: '',
-      destination: '',
+      origin: { address: '', lat: undefined, lng: undefined },
+      destination: { address: '', lat: undefined, lng: undefined },
       startTime: dates[0],
       endTime: null,
       reservation: false,
@@ -103,6 +99,8 @@ export default props => {
   const resultCheck = () => {
     switch (newEvent.category) {
       case 'none':
+      case 'tour':
+      case 'cinema':
         if (!newEvent.name) {
           setResult({ error: true, message: 'Title is required.' })
           return false
@@ -111,6 +109,7 @@ export default props => {
           return true
         }
       case 'restaurant':
+      case 'shopping':
         if (!newEvent.name) {
           setResult({ error: true, message: 'Name is required.' })
           return false
@@ -191,19 +190,10 @@ export default props => {
   }
 
   const handleCategoryChange = e => {
-    switch (e.target.value) {
-      case 'none':
-        setNewEvent(def.event)
-        break
-      case 'restaurant':
-        setNewEvent(def.restaurant)
-        break
-      case 'hotel':
-        setNewEvent(def.hotel)
-        break
-      case 'transportation':
-        setNewEvent(def.transportation)
-        break
+    if (e.target.value === 'none') {
+      setNewEvent(def.event)
+    } else {
+      setNewEvent(def[e.target.value])
     }
   }
 
@@ -214,9 +204,11 @@ export default props => {
   const renderContent = category => {
     switch (category) {
       case 'none':
-        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+      case 'tour':
+      case 'cinema':
       case 'restaurant':
-        return <Restaurant newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+      case 'shopping':
+        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
       case 'hotel':
         return <Hotel newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
       case 'transportation':
@@ -226,33 +218,25 @@ export default props => {
     }
   }
 
-  useEffect(() => {
-    setNewEvent(action.mode === 'edit' ? events.filter(event => event.id === action.id)[0] : def.event)
-  }, [action.mode])
+  useEffect(() => setNewEvent(action.mode === 'edit' ? events.filter(event => event.id === action.id)[0] : def.event), [action.mode])
 
-  useEffect(() => {
-    if (result.error) {
-      resultCheck()
-    }
-  }, [newEvent])
+  useEffect(() => { if (result.error) resultCheck() }, [newEvent])
 
-  useEffect(() => {
-    setResult(def.result)
-  }, [newEvent.category])
+  useEffect(() => setResult(def.result), [newEvent.category])
 
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <Dialog open={Boolean(action.mode)} onClose={() => setAction(def.action)}>
+      <Dialog open={Boolean(action.mode)} onClose={() => setAction(def.action)} maxWidth="sm" fullWidth>
         <DialogTitle>{action.mode === 'edit' ? 'Edit Event' : 'Add Event'}</DialogTitle>
 
         <DialogContent>
-          <FormControl margin={matchesXS ? 'dense' : 'normal'}>
+          <FormControl margin={matchesXS ? 'dense' : 'normal'} fullWidth={matchesXS ? true : false} className={classes.select}>
             <TextField
               select
               label="Category"
               value={newEvent.category}
+              helperText="Changing category will clear all other inputs"
               onChange={handleCategoryChange}
-              className={classes.select}
             >
               {categories.map(category => (
                 <MenuItem value={category.value} key={category.value}>
@@ -277,11 +261,11 @@ export default props => {
             value={newEvent.URL}
             fullWidth
             InputProps={{
-              endAdornment: newEvent.URL ? (
+              endAdornment: newEvent.URL && (
                 <InputAdornment position="end" component="a" href={newEvent.URL} className={classes.link}>
                   <OpenInNewIcon />
                 </InputAdornment>
-              ) : null,
+              ),
             }}
             onChange={handleURLChange}
           />
@@ -300,23 +284,20 @@ export default props => {
 
         <DialogActions>
           <Button onClick={() => setAction(def.action)} color="primary">Cancel</Button>
-          {action.mode === 'add'
-            ? (
-              <Button variant="contained" color="primary" onClick={handleAction}>
-                Add
+          {action.mode === 'add' ? (
+            <Button variant="contained" color="primary" onClick={handleAction}>
+              Add
+            </Button>
+          ) : action.mode === 'edit' ? (
+            <>
+              <Button variant="contained" color="primary" startIcon={!matchesXS && <SaveIcon />} onClick={handleAction}>
+                Save
               </Button>
-            ) : action.mode === 'edit'
-              ? (
-                <>
-                  <Button variant="contained" color="primary" startIcon={matchesXS ? null : <SaveIcon />} onClick={handleAction}>
-                    Save
-                  </Button>
-                  <Button variant="contained" color="secondary" startIcon={matchesXS ? null : <DeleteIcon />} onClick={handleDelete}>
-                    Delete
-                  </Button>
-                </>
-              ) : null
-          }
+              <Button variant="contained" color="secondary" startIcon={!matchesXS && <DeleteIcon />} onClick={handleDelete}>
+                Delete
+              </Button>
+            </>
+          ) : null}
         </DialogActions>
       </Dialog>
     </MuiPickersUtilsProvider >

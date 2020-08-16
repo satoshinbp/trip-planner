@@ -24,8 +24,8 @@ const useStyle = makeStyles(theme => ({
     }
   },
   select: {
-    minWidth: 120,
     [theme.breakpoints.up('sm')]: {
+      width: 250,
       marginLeft: theme.spacing(2),
     },
   },
@@ -62,13 +62,12 @@ export default props => {
 
   return (
     <>
-      <FormControl margin={matchesXS ? 'dense' : 'normal'}>
+      <FormControl margin={matchesXS ? 'dense' : 'normal'} fullWidth={matchesXS ? true : false} className={classes.select}>
         <TextField
           select
           label="Sub Category"
           value={newEvent.subCategory}
           onChange={handleSubCategoryChange}
-          className={classes.select}
         >
           {transCategories.map(category => (
             <MenuItem value={category.value} key={category.value}>
