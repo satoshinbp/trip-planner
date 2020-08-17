@@ -14,7 +14,7 @@ const map = props => {
   const { events } = props
   const [selected, setSelected] = useState(null)
 
-  const eventsWithLocation = events.filter(event => event.location)
+  const eventsWithLocation = events.filter(event => event.location.lat && event.location.lng)
 
   const center = eventsWithLocation.length === 0
     ? {
@@ -37,12 +37,13 @@ const map = props => {
     >
       {events
         .map((event, i) => {
-          if (event.location)
+          if (event.location.lat && event.location.lng)
             return (
               <Marker
                 key={i}
                 label={String(i + 1)}
                 position={{ lat: event.location.lat, lng: event.location.lng }}
+                zIndex={1000 - i}
                 onClick={() => setSelected({ name: event.name, lat: event.location.lat, lng: event.location.lng })}
               />
             )

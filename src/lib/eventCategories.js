@@ -10,10 +10,8 @@ import HotelIcon from '@material-ui/icons/Hotel'
 import RestaurantIcon from '@material-ui/icons/Restaurant'
 import ShoppingCartIcon from '@material-ui/icons/ShoppingCart'
 import TheatersIcon from '@material-ui/icons/Theaters'
-import TripOriginIcon from '@material-ui/icons/TripOrigin'
 
 export default [
-  { name: 'None', value: 'none', icon: <TripOriginIcon color="primary" key="none" /> },
   { name: 'Tour', value: 'tour', icon: <FlagIcon color="primary" key="tour" /> },
   { name: 'Restaurant', value: 'restaurant', icon: <RestaurantIcon color="primary" key="restaurant" /> },
   { name: 'Shopping', value: 'shopping', icon: <ShoppingCartIcon color="primary" key="shopping" /> },

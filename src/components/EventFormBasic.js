@@ -51,12 +51,13 @@ export default props => {
     }
   }
 
-  const handleAddressChange = address => setNewEvent({ ...newEvent, location: { address } })
+  const handleAddressChange = address => setNewEvent({ ...newEvent, location: { address, lat: null, lng: null } })
 
   const handleAddressSelect = address => {
     geocodeByAddress(address)
       .then(results => getLatLng(results[0]))
       .then(latLng => {
+        console.log(latLng)
         setNewEvent({ ...newEvent, location: { address, lat: latLng.lat, lng: latLng.lng } })
       })
   }

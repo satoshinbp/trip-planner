@@ -25,7 +25,7 @@ import withAuth from '../../../src/withAuth'
 import LoadingPage from '../../../src/components/LoadingPage'
 import Header from '../../../src/components/Header'
 import Footer from '../../../src/components/Footer'
-import Map from '../../../src/components/Map'
+import EventMap from '../../../src/components/EventMap'
 import EventForm from '../../../src/components/EventForm'
 import firebase from '../../../src/lib/firebase'
 import db from '../../../src/lib/db'
@@ -400,7 +400,7 @@ export default withAuth(props => {
         >
           <ArrowDropDownIcon size="large" className={classes.iconBtn} />
         </Button>
-        <Map {...props} tid={tid} events={events} />
+        <EventMap {...props} tid={tid} events={events} />
       </SwipeableDrawer>
 
       <EventForm

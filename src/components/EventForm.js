@@ -19,9 +19,9 @@ import Typography from '@material-ui/core/Typography'
 import DeleteIcon from '@material-ui/icons/Delete'
 import OpenInNewIcon from '@material-ui/icons/OpenInNew'
 import SaveIcon from '@material-ui/icons/Save'
-import None from './None'
-import Hotel from './Hotel'
-import Transportation from './Transportation'
+import EventFormBasic from './EventFormBasic'
+import EventFormHotel from './EventFormHotel'
+import EventFormTransport from './EventFormTransport'
 import db from '../lib/db'
 import categories from '../lib/eventCategories'
 import firebase from '../lib/firebase'
@@ -51,14 +51,14 @@ export default props => {
     name: '',
     startTime: dates[0],
     endTime: null,
-    location: { address: '', lat: undefined, lng: undefined },
+    location: { address: '' },
     reservation: false,
     URL: '',
     note: '',
   }
 
   const def = {
-    event: { category: 'none', ...eventBase },
+    none: { category: '' },
     tour: { category: 'tour', ...eventBase },
     cinema: { category: 'cinema', ...eventBase },
     restaurant: { category: 'restaurant', ...eventBase },
@@ -67,10 +67,10 @@ export default props => {
       category: 'hotel',
       name: '',
       startTime: setHours(dates[0], 15),
-      endTime: setHours(dates[1], 10),
+      endTime: dates.length !== 1 ? setHours(dates[1], 10) : null,
       checkInTime: null,
       checkOutTime: null,
-      location: { address: '', lat: undefined, lng: undefined },
+      location: { address: '' },
       reservation: false,
       URL: '',
       note: '',
@@ -90,15 +90,15 @@ export default props => {
     action: { mode: '', id: '' },
     result: { error: false, message: '' },
   }
-  const [newEvent, setNewEvent] = useState(def.event)
+  const [newEvent, setNewEvent] = useState(def.none)
   const [result, setResult] = useState(def.result)
+  const [hotelError, setHotelError] = useState(false)
 
   const user = firebase.auth().currentUser
   const eventsRef = db.collection('users').doc(user.uid).collection('trips').doc(tid).collection('events')
 
   const resultCheck = () => {
     switch (newEvent.category) {
-      case 'none':
       case 'tour':
       case 'cinema':
         if (!newEvent.name) {
@@ -190,10 +190,12 @@ export default props => {
   }
 
   const handleCategoryChange = e => {
-    if (e.target.value === 'none') {
-      setNewEvent(def.event)
+    if (e.target.value === 'hotel' && dates.length === 1) {
+      setNewEvent(def.none)
+      setHotelError(true)
     } else {
       setNewEvent(def[e.target.value])
+      setHotelError(false)
     }
   }
 
@@ -201,24 +203,71 @@ export default props => {
 
   const handleNoteChange = e => setNewEvent({ ...newEvent, note: e.target.value })
 
+  const URL = () => (
+    <TextField
+      margin={matchesXS ? 'dense' : 'normal'}
+      label="URL"
+      value={newEvent.URL}
+      fullWidth
+      InputProps={{
+        endAdornment: newEvent.URL && (
+          <InputAdornment position="end" component="a" href={newEvent.URL} className={classes.link}>
+            <OpenInNewIcon />
+          </InputAdornment>
+        ),
+      }}
+      onChange={handleURLChange}
+    />
+  )
+
+  const Note = () => (
+    <TextField
+      margin={matchesXS ? 'dense' : 'normal'}
+      label="Note"
+      variant="outlined"
+      value={newEvent.note}
+      fullWidth
+      multiline
+      rows={3}
+      onChange={handleNoteChange}
+    />
+  )
+
   const renderContent = category => {
     switch (category) {
-      case 'none':
       case 'tour':
       case 'cinema':
       case 'restaurant':
       case 'shopping':
-        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+        return (
+          <>
+            <EventFormBasic newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+            <URL />
+            <Note />
+          </>
+        )
       case 'hotel':
-        return <Hotel newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+        return (
+          <>
+            <EventFormHotel newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+            <URL />
+            <Note />
+          </>
+        )
       case 'transportation':
-        return <Transportation newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+        return (
+          <>
+            <EventFormTransport newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+            <URL />
+            <Note />
+          </>
+        )
       default:
-        return <None newEvent={newEvent} setNewEvent={setNewEvent} result={result} dates={dates} />
+        break
     }
   }
 
-  useEffect(() => setNewEvent(action.mode === 'edit' ? events.filter(event => event.id === action.id)[0] : def.event), [action.mode])
+  useEffect(() => setNewEvent(action.mode === 'edit' ? events.filter(event => event.id === action.id)[0] : def.none), [action.mode])
 
   useEffect(() => { if (result.error) resultCheck() }, [newEvent])
 
@@ -235,7 +284,9 @@ export default props => {
               select
               label="Category"
               value={newEvent.category}
-              helperText="Changing category will clear all other inputs"
+              error={hotelError}
+              helperText={hotelError && 'Cannot select hotel for one day trip.'}
+              inputProps={{ readOnly: action.mode === 'edit' }}
               onChange={handleCategoryChange}
             >
               {categories.map(category => (
@@ -254,38 +305,12 @@ export default props => {
           </FormControl>
 
           {renderContent(newEvent.category)}
-
-          <TextField
-            margin={matchesXS ? 'dense' : 'normal'}
-            label="URL"
-            value={newEvent.URL}
-            fullWidth
-            InputProps={{
-              endAdornment: newEvent.URL && (
-                <InputAdornment position="end" component="a" href={newEvent.URL} className={classes.link}>
-                  <OpenInNewIcon />
-                </InputAdornment>
-              ),
-            }}
-            onChange={handleURLChange}
-          />
-
-          <TextField
-            margin={matchesXS ? 'dense' : 'normal'}
-            label="Note"
-            variant="outlined"
-            value={newEvent.note}
-            fullWidth
-            multiline
-            rows={3}
-            onChange={handleNoteChange}
-          />
         </DialogContent>
 
         <DialogActions>
           <Button onClick={() => setAction(def.action)} color="primary">Cancel</Button>
           {action.mode === 'add' ? (
-            <Button variant="contained" color="primary" onClick={handleAction}>
+            <Button variant="contained" color="primary" disabled={newEvent.category === 'none'} onClick={handleAction}>
               Add
             </Button>
           ) : action.mode === 'edit' ? (
