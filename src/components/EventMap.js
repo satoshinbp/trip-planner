@@ -1,46 +1,50 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
   GoogleMap,
   Marker,
   InfoWindow
 } from '@react-google-maps/api'
-
-const containerStyle = {
-  width: '100%',
-  height: '100vh',
-}
+import { useTheme } from '@material-ui/core/styles'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
 
 const map = props => {
-  const { events } = props
+  const theme = useTheme()
+  const matchesMD = useMediaQuery(theme.breakpoints.down('md'))
+  const { events, center, setCenter } = props
   const [selected, setSelected] = useState(null)
 
-  const eventsWithLocation = events.filter(event => {
-    if (event.category !== 'transportation') {
-      return event.location.lat
-    } else {
-      return event.origin.lat || event.destination.lat
-    }
-  })
-
-  const center = eventsWithLocation.length === 0
-    ? {
-      lat: 35.681236,
-      lng: 139.767125,
-    } : eventsWithLocation[0].category !== 'transportation'
-      ? {
-        lat: eventsWithLocation[0].location.lat,
-        lng: eventsWithLocation[0].location.lng,
-      } : eventsWithLocation[0].origin.lat
-        ? {
-          lat: eventsWithLocation[0].origin.lat,
-          lng: eventsWithLocation[0].origin.lng,
-        } : {
-          lat: eventsWithLocation[0].destination.lat,
-          lng: eventsWithLocation[0].destination.lng,
-        }
-
+  const containerStyle = {
+    width: '100%',
+    height: matchesMD ? '100vh' : '70vh',
+  }
   const mapRef = useRef()
   const handleLoad = useCallback(map => mapRef.current = map, [])
+
+  useEffect(() => {
+    const eventsWithAddress = events.filter(event => {
+      if (event.category !== 'transportation') {
+        return event.location.lat
+      } else {
+        return event.origin.lat || event.destination.lat
+      }
+    })
+
+    if (eventsWithAddress.length !== 0) {
+      setCenter(eventsWithAddress[0].category !== 'transportation'
+        ? {
+          lat: eventsWithAddress[0].location.lat,
+          lng: eventsWithAddress[0].location.lng,
+        } : eventsWithAddress[0].origin.lat
+          ? {
+            lat: eventsWithAddress[0].origin.lat,
+            lng: eventsWithAddress[0].origin.lng,
+          } : {
+            lat: eventsWithAddress[0].destination.lat,
+            lng: eventsWithAddress[0].destination.lng,
+          })
+    }
+
+  }, [events])
 
   return (
     <GoogleMap
@@ -99,11 +103,7 @@ const map = props => {
                 label={String(i + 1)}
                 position={{ lat, lng }}
                 zIndex={1000 - i}
-                onClick={() => setSelected({
-                  name: `${event.origin.name} - ${event.destination.name}`,
-                  lat,
-                  lng,
-                })}
+                onClick={() => setSelected({ name: `${event.origin.name} - ${event.destination.name}`, lat, lng })}
               />
             )
           } else if (event.destination.lat) {
@@ -115,11 +115,7 @@ const map = props => {
                 label={String(i + 1)}
                 position={{ lat, lng }}
                 zIndex={1000 - i}
-                onClick={() => setSelected({
-                  name: `${event.origin.name} - ${event.destination.name}`,
-                  lat,
-                  lng,
-                })}
+                onClick={() => setSelected({ name: `${event.origin.name} - ${event.destination.name}`, lat, lng })}
               />
             )
           }

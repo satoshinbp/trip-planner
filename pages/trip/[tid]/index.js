@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { format, isAfter, addDays, isSameDay, startOfDay, isWithinInterval, isSameMinute } from 'date-fns'
+import { format, isAfter, addDays, isSameDay, startOfDay, isWithinInterval } from 'date-fns'
 import { makeStyles, useTheme } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
 import Accordion from '@material-ui/core/Accordion'
@@ -15,12 +15,14 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import Fab from '@material-ui/core/Fab'
 import Grid from '@material-ui/core/Grid'
 import Hidden from '@material-ui/core/Hidden'
+import IconButton from '@material-ui/core/IconButton'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer'
 import Typography from '@material-ui/core/Typography'
 import AddIcon from '@material-ui/icons/Add'
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown'
 import MapIcon from '@material-ui/icons/Map'
+import RoomIcon from '@material-ui/icons/Room'
 import withAuth from '../../../src/withAuth'
 import LoadingPage from '../../../src/components/LoadingPage'
 import Header from '../../../src/components/Header'
@@ -35,7 +37,7 @@ const useStyles = makeStyles(theme => ({
   container: {
     padding: theme.spacing(3),
     paddingBottom: theme.spacing(5.5),
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('xs')]: {
       padding: theme.spacing(2),
       paddingBottom: theme.spacing(11.5),
     },
@@ -43,9 +45,35 @@ const useStyles = makeStyles(theme => ({
   title: {
     marginBottom: theme.spacing(2),
   },
+  dates: {
+    [theme.breakpoints.down('xs')]: {
+      fontSize: theme.typography.pxToRem(18),
+    },
+  },
+  btn: {
+    marginTop: theme.spacing(1),
+  },
+  fab: {
+    position: 'fixed',
+    bottom: 28,
+    right: 20,
+    zIndex: theme.zIndex.appBar,
+  },
+  iconBtn: {
+    color: 'white',
+  },
   heading: {
     fontSize: theme.typography.pxToRem(15),
     fontWeight: theme.typography.fontWeightRegular,
+  },
+  link: {
+    cursor: 'pointer',
+  },
+  time: {
+    width: 120,
+    [theme.breakpoints.down("xs")]: {
+      width: 72,
+    },
   },
   icon: {
     display: 'flex',
@@ -58,15 +86,6 @@ const useStyles = makeStyles(theme => ({
   dividerTop: {
     marginBottom: theme.spacing(1),
   },
-  fab: {
-    position: 'fixed',
-    bottom: 28,
-    right: 20,
-    zIndex: theme.zIndex.appBar,
-  },
-  iconBtn: {
-    color: 'white',
-  },
   btnBar: {
     borderRadius: 0,
     [theme.breakpoints.up('md')]: {
@@ -76,21 +95,9 @@ const useStyles = makeStyles(theme => ({
       backgroundColor: theme.palette.primary.main,
     }
   },
-  time: {
-    width: 120,
-    [theme.breakpoints.down("xs")]: {
-      width: 72,
-    },
-  },
   backdrop: {
     zIndex: theme.zIndex.drawer + 1,
     color: '#fff',
-  },
-  link: {
-    cursor: 'pointer',
-  },
-  btn: {
-    marginTop: theme.spacing(1),
   },
 }))
 
@@ -98,6 +105,7 @@ export default withAuth(props => {
   const classes = useStyles()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
+  const matchesMD = useMediaQuery(theme.breakpoints.down('md'))
   const router = useRouter()
   const { tid } = router.query
 
@@ -108,6 +116,7 @@ export default withAuth(props => {
   const [sortedEvents, setSortedEvents] = useState([])
   const [action, setAction] = useState({ mode: '', id: '' })
   const [mapOpen, setMapOpen] = useState(false)
+  const [mapCenter, setMapCenter] = useState({ lat: 35.681236, lng: 139.767125 })
 
   const handleAddEvent = () => setAction({ mode: 'add', id: '' })
   const handleEditEvent = id => () => setAction({ mode: 'edit', id })
@@ -136,17 +145,19 @@ export default withAuth(props => {
             &nbsp;@{trip.location}
           </Typography>
         )}
-        <Typography variant="h6">
+        <Typography variant="h6" className={classes.dates}>
           {format(trip.startDate, 'yyyy/MM/dd')} - {format(trip.endDate, 'yyyy/MM/dd')}
         </Typography>
       </Grid>
       <Grid item>
         <Grid container direction="column" alignItems="flex-end">
-          <Grid item>
-            <Button variant="outlined" color="primary" startIcon={<MapIcon />} onClick={handleMapOpen}>
-              Map
-            </Button>
-          </Grid>
+          {matchesMD && (
+            <Grid item>
+              <Button variant="outlined" color="primary" startIcon={<MapIcon />} onClick={handleMapOpen}>
+                Map
+              </Button>
+            </Grid>
+          )}
           <Grid item>
             <Hidden xsDown>
               <Button variant="contained" color="primary" className={classes.btn} onClick={handleAddEvent}>
@@ -178,7 +189,7 @@ export default withAuth(props => {
           const thisDateEvents = sortedEvents.filter(event => isSameDay(event.sortTime, date))
 
           return (
-            <Accordion key={date} defaultExpanded={thisDateEvents.length !== 0 ? true : false}>
+            <Accordion key={date} defaultExpanded={thisDateEvents.length !== 0}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Typography className={classes.heading}>
                   {format(date, 'yyyy/MM/dd')}
@@ -223,27 +234,54 @@ export default withAuth(props => {
                             : transCategories.map(category => category.value === event.subCategory && category.icon)
                           }
                         </ListItemIcon>
-                        {event.category === 'transportation'
-                          ? (
-                            <Typography variant="body1">
-                              {event.origin.name} → {event.destination.name}
+                        <Grid item xs>
+                          {event.category === 'transportation'
+                            ? (
+                              <Typography variant="body1">
+                                {event.origin.name} → {event.destination.name}
+                              </Typography>
+                            ) : (
+                              event.category === 'hotel'
+                                ? (
+                                  <Typography variant="body1">
+                                    {event.name}
+                                    {!matchesXS && (
+                                      event.sortTime === event.startTime
+                                        ? ` (check-in: ${format(event.checkInTime, 'HH:mm')} -)`
+                                        : ` (check-out: - ${format(event.checkOutTime, 'HH:mm')})`
+                                    )}
+                                  </Typography>
+                                ) : (
+                                  <Typography variant="body1">
+                                    {event.name}
+                                  </Typography>
+                                )
+                            )}
+                        </Grid>
+                        {!matchesMD && (
+                          <IconButton
+                            edge="end"
+                            color='secondary'
+                            disabled={
+                              event.location
+                                ? !event.location.lat
+                                : !event.origin.lat && !event.destination.lat
+                            }
+                          >
+                            <RoomIcon />
+                            <Typography color={
+                              event.location
+                                ? event.location.lat
+                                  ? 'secondary'
+                                  : 'disabled'
+                                : !event.origin.lat && !event.destination.lat
+                                  ? 'disabled'
+                                  : 'secondary'
+                            }>
+                              {event.order + 1}
                             </Typography>
-                          ) : (
-                            event.category === 'hotel'
-                              ? (
-                                <Typography variant="body1">
-                                  {event.name}
-                                  {!matchesXS && event.sortTime === event.startTime
-                                    ? ` (check-in: ${format(event.checkInTime, 'HH:mm')} -)`
-                                    : ` (check-out: - ${format(event.checkOutTime, 'HH:mm')})`
-                                  }
-                                </Typography>
-                              ) : (
-                                <Typography variant="body1">
-                                  {event.name}
-                                </Typography>
-                              )
-                          )}
+                          </IconButton>
+                        )}
                       </Grid>
                     </React.Fragment>
                   ))}
@@ -254,7 +292,7 @@ export default withAuth(props => {
         })}
 
         {outOfDatesEvents.length !== 0 && (
-          <Accordion>
+          <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               <Typography className={classes.heading}>Out of Range</Typography>
             </AccordionSummary>
@@ -267,16 +305,18 @@ export default withAuth(props => {
                     <Grid item container className={classes.link} alignItems="center" onClick={handleEditEvent(event.id)}>
                       <Grid item className={classes.time}>
                         {matchesXS
-                          ? <>
-                            <Typography variant="body1">
-                              {format(event.startTime, 'MM/dd')}
-                            </Typography>
-                            {event.endTime && !isSameDay(event.startTime, event.endTime) && (
-                              <Typography variant="body2">
-                                &nbsp;- {format(event.endTime, 'MM/dd')}
+                          ? (
+                            <>
+                              <Typography variant="body1">
+                                {format(event.startTime, 'MM/dd')}
                               </Typography>
-                            )}
-                          </> : (
+                              {event.endTime && !isSameDay(event.startTime, event.endTime) && (
+                                <Typography variant="body2">
+                                  &nbsp;- {format(event.endTime, 'MM/dd')}
+                                </Typography>
+                              )}
+                            </>
+                          ) : (
                             <Typography variant="body1">
                               {format(event.startTime, 'MM/dd')}
                               {event.endTime && !isSameDay(event.startTime, event.endTime) && (
@@ -289,19 +329,29 @@ export default withAuth(props => {
                       <ListItemIcon className={classes.icon}>
                         {event.category !== 'transportation'
                           ? categories.map(category => category.value === event.category && category.icon)
-                          : transportationSubCategories.map(category => category.value === event.subCategory && category.icon)
+                          : transCategories.map(category => category.value === event.subCategory && category.icon)
                         }
                       </ListItemIcon>
-                      {event.category === 'transportation'
-                        ? (
-                          <Typography variant="body1">
-                            {event.origin} → {event.destination}
+                      <Grid item xs>
+                        {event.category === 'transportation'
+                          ? (
+                            <Typography variant="body1">
+                              {event.origin.name} → {event.destination.name}
+                            </Typography>
+                          ) : (
+                            <Typography variant="body1">
+                              {event.name}
+                            </Typography>
+                          )}
+                      </Grid>
+                      {!matchesMD && (
+                        <ListItemIcon className={classes.icon}>
+                          <RoomIcon color="secondary" />
+                          <Typography color="secondary">
+                            {event.order + 1}
                           </Typography>
-                        ) : (
-                          <Typography variant="body1">
-                            {event.name}
-                          </Typography>
-                        )}
+                        </ListItemIcon>
+                      )}
                     </Grid>
                   </React.Fragment>
                 ))}
@@ -363,10 +413,11 @@ export default withAuth(props => {
   }, [])
 
   useEffect(() => {
-    const eventToBeSortedByStartTime = events.map(event => (
+    const eventsWithOrder = events.map((event, i) => ({ ...event, order: i }))
+    const eventToBeSortedByStartTime = eventsWithOrder.map(event => (
       { ...event, sortTime: event.startTime }
     ))
-    const eventToBeSortedByEndTime = events.filter(event =>
+    const eventToBeSortedByEndTime = eventsWithOrder.filter(event =>
       event.endTime && !isSameDay(event.startTime, event.endTime)
     ).map(event => (
       { ...event, sortTime: event.endTime }
@@ -385,23 +436,37 @@ export default withAuth(props => {
 
       <Container className={classes.container}>
         <TripSummary />
-        <EventAccordions />
+        {matchesMD
+          ? (
+            <>
+              <EventAccordions />
+              <SwipeableDrawer anchor="bottom" open={mapOpen} onClose={toggleDrawer(false)} onOpen={toggleDrawer(true)} variant="persistent">
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  size="small"
+                  disableRipple={true}
+                  onClick={handleMapClose}
+                  className={classes.btnBar}
+                >
+                  <ArrowDropDownIcon size="large" className={classes.iconBtn} />
+                </Button>
+                <EventMap {...props} tid={tid} events={events} center={mapCenter} setCenter={setMapCenter} />
+              </SwipeableDrawer>
+            </>
+          ) : (
+            <Grid container spacing={2}>
+              <Grid item lg>
+                <EventAccordions />
+              </Grid>
+              <Grid item lg>
+                <EventMap {...props} tid={tid} events={events} center={mapCenter} setCenter={setMapCenter} />
+              </Grid>
+            </Grid>
+          )
+        }
       </Container>
-
-      <SwipeableDrawer anchor="bottom" open={mapOpen} onClose={toggleDrawer(false)} onOpen={toggleDrawer(true)}>
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          size="small"
-          disableRipple={true}
-          onClick={handleMapClose}
-          className={classes.btnBar}
-        >
-          <ArrowDropDownIcon size="large" className={classes.iconBtn} />
-        </Button>
-        <EventMap {...props} tid={tid} events={events} />
-      </SwipeableDrawer>
 
       <EventForm
         {...props}
