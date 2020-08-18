@@ -78,8 +78,8 @@ export default props => {
     transportation: {
       category: 'transportation',
       subCategory: 'walk',
-      origin: { address: '', lat: undefined, lng: undefined },
-      destination: { address: '', lat: undefined, lng: undefined },
+      origin: { name: '', address: '' },
+      destination: { name: '', address: '' },
       startTime: dates[0],
       endTime: null,
       reservation: false,

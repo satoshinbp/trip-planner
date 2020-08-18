@@ -226,7 +226,7 @@ export default withAuth(props => {
                         {event.category === 'transportation'
                           ? (
                             <Typography variant="body1">
-                              {event.origin} → {event.destination}
+                              {event.origin.name} → {event.destination.name}
                             </Typography>
                           ) : (
                             event.category === 'hotel'

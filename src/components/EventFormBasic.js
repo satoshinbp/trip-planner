@@ -57,7 +57,6 @@ export default props => {
     geocodeByAddress(address)
       .then(results => getLatLng(results[0]))
       .then(latLng => {
-        console.log(latLng)
         setNewEvent({ ...newEvent, location: { address, lat: latLng.lat, lng: latLng.lng } })
       })
   }
