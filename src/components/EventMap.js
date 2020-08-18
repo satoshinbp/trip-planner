@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { format, isSameDay, isSameYear } from 'date-fns'
 import {
   GoogleMap,
   Marker,
@@ -6,6 +7,7 @@ import {
 } from '@react-google-maps/api'
 import { useTheme } from '@material-ui/core/styles'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
+import Typography from '@material-ui/core/Typography'
 
 const map = props => {
   const theme = useTheme()
@@ -19,6 +21,20 @@ const map = props => {
   }
   const mapRef = useRef()
   const handleLoad = useCallback(map => mapRef.current = map, [])
+
+  const timeDisplay = (start, end) => {
+    if (end) {
+      if (isSameDay(start, end)) {
+        return `${format(start, 'yy/MM/dd HH:mm')} - ${format(end, 'HH:mm')}`
+      } else if (isSameYear(start, end)) {
+        return `${format(start, 'yy/MM/dd HH:mm')} - ${format(end, 'MM/dd HH:mm')}`
+      } else {
+        return `${format(start, 'yy/MM/dd HH:mm')} - ${format(end, 'yy/MM/dd HH:mm')}`
+      }
+    } else {
+      return format(start, 'yy/MM/dd HH:mm')
+    }
+  }
 
   useEffect(() => {
     const eventsWithAddress = events.filter(event => {
@@ -65,7 +81,12 @@ const map = props => {
                   label={String(i + 1)}
                   position={{ lat, lng }}
                   zIndex={1000 - i}
-                  onClick={() => setSelected({ name: event.name, lat, lng })}
+                  onClick={() => setSelected({
+                    name: event.name,
+                    time: timeDisplay(event.startTime, event.endTime),
+                    lat,
+                    lng,
+                  })}
                 />
               )
             }
@@ -77,7 +98,8 @@ const map = props => {
                   position={{ lat: event.origin.lat, lng: event.origin.lng }}
                   zIndex={1000 - i}
                   onClick={() => setSelected({
-                    name: `${event.origin.name} - ${event.destination.name}`,
+                    name: `${event.origin.name} → ${event.destination.name}`,
+                    time: timeDisplay(event.startTime, event.endTime),
                     lat: event.origin.lat,
                     lng: event.origin.lng,
                   })}
@@ -87,7 +109,8 @@ const map = props => {
                   position={{ lat: event.destination.lat, lng: event.destination.lng }}
                   zIndex={1000 - i}
                   onClick={() => setSelected({
-                    name: `${event.origin.name} - ${event.destination.name}`,
+                    name: `${event.origin.name} → ${event.destination.name}`,
+                    time: timeDisplay(event.startTime, event.endTime),
                     lat: event.destination.lat,
                     lng: event.destination.lng,
                   })}
@@ -103,7 +126,12 @@ const map = props => {
                 label={String(i + 1)}
                 position={{ lat, lng }}
                 zIndex={1000 - i}
-                onClick={() => setSelected({ name: `${event.origin.name} - ${event.destination.name}`, lat, lng })}
+                onClick={() => setSelected({
+                  name: `${event.origin.name} → ${event.destination.name}`,
+                  time: timeDisplay(event.startTime, event.endTime),
+                  lat,
+                  lng
+                })}
               />
             )
           } else if (event.destination.lat) {
@@ -115,16 +143,30 @@ const map = props => {
                 label={String(i + 1)}
                 position={{ lat, lng }}
                 zIndex={1000 - i}
-                onClick={() => setSelected({ name: `${event.origin.name} - ${event.destination.name}`, lat, lng })}
+                onClick={() => setSelected({
+                  name: `${event.origin.name} → ${event.destination.name}`,
+                  time: timeDisplay(event.startTime, event.endTime),
+                  lat,
+                  lng
+                })}
               />
             )
           }
         })}
-      {selected ? <InfoWindow position={{ lat: selected.lat, lng: selected.lng }} onCloseClick={() => setSelected(null)}>
-        <div>
-          {selected.name}
-        </div>
-      </InfoWindow> : null}
+      {selected
+        ? (
+          <InfoWindow position={{ lat: selected.lat, lng: selected.lng }} onCloseClick={() => setSelected(null)}>
+            <>
+              <Typography variant="body2">
+                {selected.time}
+              </Typography>
+              <Typography>
+                {selected.name}
+              </Typography>
+            </>
+          </InfoWindow>
+        ) : null
+      }
     </GoogleMap >
   )
 }
