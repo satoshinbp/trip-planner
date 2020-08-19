@@ -29,7 +29,7 @@ import firebase from '../lib/firebase'
 const useStyles = makeStyles(theme => ({
   select: {
     [theme.breakpoints.up('sm')]: {
-      width: 250,
+      minWidth: 200,
     },
   },
   icon: {
@@ -279,7 +279,7 @@ export default props => {
         <DialogTitle>{action.mode === 'edit' ? 'Edit Event' : 'Add Event'}</DialogTitle>
 
         <DialogContent>
-          <FormControl margin={matchesXS ? 'dense' : 'normal'} fullWidth={matchesXS ? true : false} className={classes.select}>
+          <FormControl margin={matchesXS ? 'dense' : 'normal'} fullWidth={matchesXS} className={classes.select}>
             <TextField
               select
               label="Category"

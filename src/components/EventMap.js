@@ -17,7 +17,7 @@ const map = props => {
 
   const containerStyle = {
     width: '100%',
-    height: matchesMD ? '100vh' : '70vh',
+    height: matchesMD ? '100vh' : '75vh',
   }
   const mapRef = useRef()
   const handleLoad = useCallback(map => mapRef.current = map, [])

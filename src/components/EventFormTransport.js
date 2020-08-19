@@ -32,7 +32,7 @@ const useStyle = makeStyles(theme => ({
   },
   select: {
     [theme.breakpoints.up('sm')]: {
-      width: 250,
+      minWidth: 200,
       marginLeft: theme.spacing(2),
     },
   },
