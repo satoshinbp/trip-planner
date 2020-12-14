@@ -14,7 +14,7 @@ const map = (props) => {
 
   const containerStyle = {
     width: "100%",
-    height: matchesXS ? "calc(100vh - 177px)" : matchesSM ? "calc(100vh - 189px)" : "calc(100vh - 224px)",
+    height: matchesXS ? "calc(100vh - 227px)" : matchesSM ? "calc(100vh - 243px)" : "calc(100vh - 224px)",
   };
 
   const options = {

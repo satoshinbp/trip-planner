@@ -4,6 +4,7 @@ import { format, isAfter, addDays, isSameDay, startOfDay, isWithinInterval } fro
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import {
   useMediaQuery,
+  Toolbar,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -91,13 +92,8 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
     height: "calc(100vh - 224px)",
     [theme.breakpoints.down("sm")]: {
-      overflowY: "visible",
-      height: "auto",
+      height: "75vh",
     },
-  },
-  map: {
-    width: "85vw",
-    height: "85vh",
   },
   divider: {
     margin: theme.spacing(2, 0),
@@ -149,9 +145,6 @@ export default withAuth((props) => {
     if (e && e.type === "keydown" && (e.key === "Tab" || e.key === "Shift")) {
       return;
     }
-    if (!open) {
-      setMapCenter(def.center);
-    }
     setMapOpen(open);
   };
 
@@ -160,15 +153,15 @@ export default withAuth((props) => {
   const TripSummary = () => (
     <Grid container justify="space-between" alignItems="flex-end" className={classes.title}>
       <Grid item>
-        <Typography variant="h4" component="span">
+        <Typography variant="h6" component="span" classes>
           {trip.title}
         </Typography>
         {trip.location && !matchesXS && (
-          <Typography variant="h6" component="span">
+          <Typography variant="subtitle1" component="span">
             &nbsp;@{trip.location}
           </Typography>
         )}
-        <Typography variant="h6" className={classes.dates}>
+        <Typography variant="subtitle1" className={classes.dates}>
           {format(trip.startDate, "yyyy/MM/dd")} - {format(trip.endDate, "yyyy/MM/dd")}
         </Typography>
       </Grid>
@@ -426,14 +419,30 @@ export default withAuth((props) => {
       </Container>
 
       <Hidden mdUp>
-        <EventMap
-          class={classes.map}
-          {...props}
-          tid={tid}
-          events={events}
-          center={mapCenter}
-          setCenter={setMapCenter}
-        />
+        <EventMap {...props} tid={tid} events={events} center={mapCenter} setCenter={setMapCenter} />
+        <Toolbar />
+
+        {/* <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          size="small"
+          disableRipple={true}
+          onClick={handleMapClose}
+          className={classes.btnBar}
+        >
+          <ArrowDropDown size="large" className={classes.iconBtn} />
+        </Button> */}
+
+        <SwipeableDrawer
+          anchor="bottom"
+          open={mapOpen}
+          onClose={toggleDrawer(false)}
+          onOpen={toggleDrawer(true)}
+          swipeAreaWidth={76}
+        >
+          <EventAccordions />
+        </SwipeableDrawer>
       </Hidden>
 
       <EventForm
