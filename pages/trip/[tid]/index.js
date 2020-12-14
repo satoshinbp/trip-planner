@@ -4,7 +4,6 @@ import { format, isAfter, addDays, isSameDay, startOfDay, isWithinInterval } fro
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import {
   useMediaQuery,
-  Toolbar,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -20,10 +19,9 @@ import {
   IconButton,
   Backdrop,
   CircularProgress,
-  Dialog,
   SwipeableDrawer,
 } from "@material-ui/core";
-import { Add, ArrowDropDown, Map, Room, ExpandMore } from "@material-ui/icons";
+import { Add, Map, Room, ExpandMore, DragHandle } from "@material-ui/icons";
 import withAuth from "../../../src/withAuth";
 import LoadingPage from "../../../src/components/LoadingPage";
 import Header from "../../../src/components/Header";
@@ -95,20 +93,16 @@ const useStyles = makeStyles((theme) => ({
       height: "75vh",
     },
   },
+  swipeArea: {
+    display: "flex",
+    justifyContent: "center",
+    height: theme.spacing(4),
+  },
   divider: {
     margin: theme.spacing(2, 0),
   },
   dividerTop: {
     marginBottom: theme.spacing(1),
-  },
-  btnBar: {
-    borderRadius: 0,
-    [theme.breakpoints.up("md")]: {
-      height: 20,
-    },
-    "&:hover": {
-      backgroundColor: theme.palette.primary.main,
-    },
   },
   backdrop: {
     zIndex: theme.zIndex.drawer + 1,
@@ -137,9 +131,6 @@ export default withAuth((props) => {
 
   const handleAddEvent = (date) => setAction({ mode: "add", id: "", date });
   const handleEditEvent = (id) => () => setAction({ mode: "edit", id });
-
-  const handleMapOpen = () => setMapOpen(true);
-  const handleMapClose = () => setMapOpen(false);
 
   const toggleDrawer = (open) => (e) => {
     if (e && e.type === "keydown" && (e.key === "Tab" || e.key === "Shift")) {
@@ -420,27 +411,22 @@ export default withAuth((props) => {
 
       <Hidden mdUp>
         <EventMap {...props} tid={tid} events={events} center={mapCenter} setCenter={setMapCenter} />
-        <Toolbar />
-
-        {/* <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          size="small"
-          disableRipple={true}
-          onClick={handleMapClose}
-          className={classes.btnBar}
-        >
-          <ArrowDropDown size="large" className={classes.iconBtn} />
-        </Button> */}
+        <div className={classes.swipeArea}>
+          <DragHandle size="large" />
+          <Divider />
+        </div>
 
         <SwipeableDrawer
           anchor="bottom"
           open={mapOpen}
           onClose={toggleDrawer(false)}
           onOpen={toggleDrawer(true)}
-          swipeAreaWidth={76}
+          swipeAreaWidth={32}
         >
+          <div className={classes.swipeArea}>
+            <DragHandle size="large" />
+          </div>
+          <Divider />
           <EventAccordions />
         </SwipeableDrawer>
       </Hidden>
@@ -460,7 +446,9 @@ export default withAuth((props) => {
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      <Footer />
+      <Hidden smDown>
+        <Footer />
+      </Hidden>
     </div>
   );
 });

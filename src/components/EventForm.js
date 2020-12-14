@@ -3,22 +3,23 @@ import { isAfter, setHours, addDays } from "date-fns";
 import DateFnsUtils from "@date-io/date-fns";
 import { MuiPickersUtilsProvider } from "@material-ui/pickers";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
-import Button from "@material-ui/core/Button";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import FormControl from "@material-ui/core/FormControl";
-import Grid from "@material-ui/core/Grid";
-import InputAdornment from "@material-ui/core/InputAdornment";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import MenuItem from "@material-ui/core/MenuItem";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
-import DeleteIcon from "@material-ui/icons/Delete";
-import OpenInNewIcon from "@material-ui/icons/OpenInNew";
-import SaveIcon from "@material-ui/icons/Save";
+import {
+  useMediaQuery,
+  Grid,
+  FormControl,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  TextField,
+  MenuItem,
+  ListItemIcon,
+  InputAdornment,
+  Button,
+  Typography,
+} from "@material-ui/core";
+import { Delete, OpenInNew, Save } from "@material-ui/icons";
 import EventFormBasic from "./EventFormBasic";
 import EventFormHotel from "./EventFormHotel";
 import EventFormTransport from "./EventFormTransport";
@@ -92,6 +93,7 @@ export default (props) => {
   };
   const [newEvent, setNewEvent] = useState(def.none);
   const [result, setResult] = useState(def.result);
+  const [deleteEvent, setDeleteEvent] = useState(false);
 
   const user = firebase.auth().currentUser;
   const eventsRef = db.collection("users").doc(user.uid).collection("trips").doc(tid).collection("events");
@@ -180,6 +182,7 @@ export default (props) => {
   const handleDelete = () => {
     setIsLoading({ deep: false, shallow: true });
     setAction({ ...action, mode: "" });
+    handleSubClose();
 
     eventsRef
       .doc(action.id)
@@ -190,6 +193,9 @@ export default (props) => {
         setIsLoading(def.isLoading);
       });
   };
+
+  const handleMainClose = () => setAction(def.action);
+  const handleSubClose = () => setDeleteEvent(false);
 
   const handleCategoryChange = (e) => setNewEvent(def[e.target.value]);
 
@@ -226,7 +232,7 @@ export default (props) => {
 
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
-      <Dialog open={Boolean(action.mode)} onClose={() => setAction(def.action)} maxWidth="sm" fullWidth>
+      <Dialog open={Boolean(action.mode)} onClose={handleMainClose} maxWidth="sm" fullWidth>
         <DialogTitle>{action.mode === "edit" ? "Edit Event" : "Add Event"}</DialogTitle>
 
         <DialogContent>
@@ -264,7 +270,7 @@ export default (props) => {
                 InputProps={{
                   endAdornment: newEvent.URL && (
                     <InputAdornment position="end" component="a" href={newEvent.URL} className={classes.link}>
-                      <OpenInNewIcon />
+                      <OpenInNew />
                     </InputAdornment>
                   ),
                 }}
@@ -285,7 +291,7 @@ export default (props) => {
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setAction(def.action)} color="primary">
+          <Button onClick={handleMainClose} color="primary">
             Cancel
           </Button>
           {action.mode === "add" ? (
@@ -294,19 +300,34 @@ export default (props) => {
             </Button>
           ) : action.mode === "edit" ? (
             <>
-              <Button variant="contained" color="primary" startIcon={!matchesXS && <SaveIcon />} onClick={handleAction}>
+              <Button variant="contained" color="primary" startIcon={!matchesXS && <Save />} onClick={handleAction}>
                 Save
               </Button>
               <Button
                 variant="contained"
                 color="secondary"
-                startIcon={!matchesXS && <DeleteIcon />}
-                onClick={handleDelete}
+                startIcon={!matchesXS && <Delete />}
+                onClick={() => setDeleteEvent(true)}
               >
                 Delete
               </Button>
             </>
           ) : null}
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteEvent} onClose={handleSubClose}>
+        <DialogTitle>Delete Event</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Are you sure you want to permanently delete this event?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button color="primary" onClick={handleSubClose}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="secondary" onClick={handleDelete}>
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
     </MuiPickersUtilsProvider>
