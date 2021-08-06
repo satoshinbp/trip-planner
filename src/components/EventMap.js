@@ -1,55 +1,65 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { format, isSameDay, isSameYear } from "date-fns";
-import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
-import { useTheme } from "@material-ui/core/styles";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
-import Typography from "@material-ui/core/Typography";
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { format, isSameDay, isSameYear } from 'date-fns'
+import { GoogleMap, Marker, InfoWindow } from '@react-google-maps/api'
+import { useTheme } from '@material-ui/core/styles'
+import useMediaQuery from '@material-ui/core/useMediaQuery'
+import Typography from '@material-ui/core/Typography'
 
 const map = (props) => {
-  const theme = useTheme();
-  const matchesXS = useMediaQuery(theme.breakpoints.down("xs"));
-  const matchesSM = useMediaQuery(theme.breakpoints.down("sm"));
-  const { events, center, setCenter } = props;
-  const [selected, setSelected] = useState(null);
+  const theme = useTheme()
+  const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
+  const matchesSM = useMediaQuery(theme.breakpoints.down('sm'))
+  const { events, center, setCenter } = props
+  const [selected, setSelected] = useState(null)
 
   const containerStyle = {
-    width: "100%",
-    height: matchesXS ? "calc(100vh - 183px)" : matchesSM ? "calc(100vh - 191px)" : "calc(100vh - 224px)",
-  };
+    width: '100%',
+    height: matchesXS
+      ? 'calc(100vh - 183px)'
+      : matchesSM
+      ? 'calc(100vh - 191px)'
+      : 'calc(100vh - 224px)',
+  }
 
   const options = {
     disableDefaultUI: true,
-  };
+  }
 
-  const mapRef = useRef();
-  const handleLoad = useCallback((map) => (mapRef.current = map), []);
+  const mapRef = useRef()
+  const handleLoad = useCallback((map) => (mapRef.current = map), [])
 
   const timeDisplay = (start, end) => {
     if (end) {
       if (isSameDay(start, end)) {
-        return `${format(start, "yy/MM/dd HH:mm")} - ${format(end, "HH:mm")}`;
+        return `${format(start, 'yy/MM/dd HH:mm')} - ${format(end, 'HH:mm')}`
       } else if (isSameYear(start, end)) {
-        return `${format(start, "yy/MM/dd HH:mm")} - ${format(end, "MM/dd HH:mm")}`;
+        return `${format(start, 'yy/MM/dd HH:mm')} - ${format(
+          end,
+          'MM/dd HH:mm'
+        )}`
       } else {
-        return `${format(start, "yy/MM/dd HH:mm")} - ${format(end, "yy/MM/dd HH:mm")}`;
+        return `${format(start, 'yy/MM/dd HH:mm')} - ${format(
+          end,
+          'yy/MM/dd HH:mm'
+        )}`
       }
     } else {
-      return format(start, "yy/MM/dd HH:mm");
+      return format(start, 'yy/MM/dd HH:mm')
     }
-  };
+  }
 
   useEffect(() => {
     const eventsWithAddress = events.filter((event) => {
-      if (event.category !== "transportation") {
-        return event.location.lat;
+      if (event.category !== 'transportation') {
+        return event.location.lat
       } else {
-        return event.origin.lat || event.destination.lat;
+        return event.origin.lat || event.destination.lat
       }
-    });
+    })
 
     if (eventsWithAddress.length !== 0) {
       setCenter(
-        eventsWithAddress[0].category !== "transportation"
+        eventsWithAddress[0].category !== 'transportation'
           ? {
               lat: eventsWithAddress[0].location.lat,
               lng: eventsWithAddress[0].location.lng,
@@ -63,17 +73,23 @@ const map = (props) => {
               lat: eventsWithAddress[0].destination.lat,
               lng: eventsWithAddress[0].destination.lng,
             }
-      );
+      )
     }
-  }, [events]);
+  }, [events])
 
   return (
-    <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={12} onLoad={handleLoad} options={options}>
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={12}
+      onLoad={handleLoad}
+      options={options}
+    >
       {events.map((event, i) => {
-        if (event.category !== "transportation") {
+        if (event.category !== 'transportation') {
           if (event.location.lat) {
-            const lat = event.location.lat;
-            const lng = event.location.lng;
+            const lat = event.location.lat
+            const lng = event.location.lng
             return (
               <Marker
                 key={i}
@@ -89,7 +105,7 @@ const map = (props) => {
                   })
                 }
               />
-            );
+            )
           }
         } else if (event.origin.lat && event.destination.lat) {
           return (
@@ -109,7 +125,10 @@ const map = (props) => {
               />
               <Marker
                 label={String(i + 1)}
-                position={{ lat: event.destination.lat, lng: event.destination.lng }}
+                position={{
+                  lat: event.destination.lat,
+                  lng: event.destination.lng,
+                }}
                 zIndex={1000 - i}
                 onClick={() =>
                   setSelected({
@@ -121,10 +140,10 @@ const map = (props) => {
                 }
               />
             </React.Fragment>
-          );
+          )
         } else if (event.origin.lat) {
-          const lat = event.origin.lat;
-          const lng = event.origin.lng;
+          const lat = event.origin.lat
+          const lng = event.origin.lng
           return (
             <Marker
               key={i}
@@ -140,10 +159,10 @@ const map = (props) => {
                 })
               }
             />
-          );
+          )
         } else if (event.destination.lat) {
-          const lat = event.destination.lat;
-          const lng = event.destination.lng;
+          const lat = event.destination.lat
+          const lng = event.destination.lng
           return (
             <Marker
               key={i}
@@ -159,11 +178,14 @@ const map = (props) => {
                 })
               }
             />
-          );
+          )
         }
       })}
       {selected ? (
-        <InfoWindow position={{ lat: selected.lat, lng: selected.lng }} onCloseClick={() => setSelected(null)}>
+        <InfoWindow
+          position={{ lat: selected.lat, lng: selected.lng }}
+          onCloseClick={() => setSelected(null)}
+        >
           <>
             <Typography variant="body2">{selected.time}</Typography>
             <Typography>{selected.name}</Typography>
@@ -171,7 +193,7 @@ const map = (props) => {
         </InfoWindow>
       ) : null}
     </GoogleMap>
-  );
-};
+  )
+}
 
-export default React.memo(map);
+export default React.memo(map)

@@ -10,8 +10,7 @@ export default createMuiTheme({
     },
   },
   overrides: {
-    MuiButton:
-    {
+    MuiButton: {
       containedPrimary: {
         color: baseColor,
       },

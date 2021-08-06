@@ -16,12 +16,15 @@ export default function MyApp(props) {
       jssStyles.parentElement.removeChild(jssStyles)
     }
   }, [])
-  
+
   return (
     <React.Fragment>
       <Head>
         <title>Trip Planner</title>
-        <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
+        <meta
+          name="viewport"
+          content="minimum-scale=1, initial-scale=1, width=device-width"
+        />
       </Head>
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}

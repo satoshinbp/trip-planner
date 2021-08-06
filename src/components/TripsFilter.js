@@ -1,13 +1,13 @@
-import React from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Fab from "@material-ui/core/Fab";
-import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
-import Hidden from "@material-ui/core/Hidden";
-import AddIcon from "@material-ui/icons/Add";
+import React from 'react'
+import { makeStyles } from '@material-ui/core/styles'
+import Radio from '@material-ui/core/Radio'
+import RadioGroup from '@material-ui/core/RadioGroup'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Fab from '@material-ui/core/Fab'
+import Grid from '@material-ui/core/Grid'
+import Button from '@material-ui/core/Button'
+import Hidden from '@material-ui/core/Hidden'
+import AddIcon from '@material-ui/icons/Add'
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -19,26 +19,36 @@ const useStyles = makeStyles((theme) => ({
     width: 74,
   },
   fab: {
-    position: "fixed",
+    position: 'fixed',
     bottom: theme.spacing(4.5),
     right: theme.spacing(2),
     zIndex: theme.zIndex.appBar,
   },
   fabIcon: {
-    color: "white",
+    color: 'white',
   },
-}));
+}))
 
 export default (props) => {
-  const { filter, setFilter, setAction } = props;
-  const classes = useStyles();
+  const { filter, setFilter, setAction } = props
+  const classes = useStyles()
 
-  const handleAddTrip = () => setAction({ name: "add", id: undefined });
+  const handleAddTrip = () => setAction({ name: 'add', id: undefined })
 
   return (
-    <Grid container direction="row" justify="space-between" alignItems="center" className={classes.root}>
+    <Grid
+      container
+      direction="row"
+      justify="space-between"
+      alignItems="center"
+      className={classes.root}
+    >
       <Grid item>
-        <RadioGroup row value={filter} onChange={(e) => setFilter(e.target.value)}>
+        <RadioGroup
+          row
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
           <FormControlLabel
             value="upcoming"
             control={<Radio color="primary" />}
@@ -75,5 +85,5 @@ export default (props) => {
         </Hidden>
       </Grid>
     </Grid>
-  );
-};
+  )
+}

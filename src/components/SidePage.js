@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid'
 import SignIn from './SignIn'
 import SignUp from './SignUp'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     height: '100vh',
   },
@@ -14,7 +14,9 @@ const useStyles = makeStyles(theme => ({
     backgroundImage: 'url(/loginpage-background.jpg)',
     backgroundRepeat: 'no-repeat',
     backgroundColor:
-      theme.palette.type === 'light' ? theme.palette.grey[50] : theme.palette.grey[900],
+      theme.palette.type === 'light'
+        ? theme.palette.grey[50]
+        : theme.palette.grey[900],
     backgroundSize: 'cover',
     backgroundPosition: 'center',
   },
@@ -29,7 +31,11 @@ export default () => {
       <CssBaseline />
       <Grid item xs={false} sm={4} md={7} className={classes.image} />
       <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
-        {page === 'signIn' ? <SignIn setPage={setPage} /> : <SignUp setPage={setPage} />}
+        {page === 'signIn' ? (
+          <SignIn setPage={setPage} />
+        ) : (
+          <SignUp setPage={setPage} />
+        )}
       </Grid>
     </Grid>
   )

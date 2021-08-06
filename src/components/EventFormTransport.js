@@ -21,14 +21,14 @@ import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography'
 import { transCategories } from '../lib/eventCategories'
 
-const useStyle = makeStyles(theme => ({
+const useStyle = makeStyles((theme) => ({
   formControlLabel: {
     marginTop: theme.spacing(1.5),
     marginBottom: theme.spacing(0.75),
     marginLeft: 0,
     [theme.breakpoints.up('sm')]: {
       marginTop: theme.spacing(3.5),
-    }
+    },
   },
   select: {
     [theme.breakpoints.up('sm')]: {
@@ -42,39 +42,72 @@ const useStyle = makeStyles(theme => ({
   },
 }))
 
-export default props => {
+export default (props) => {
   const classes = useStyle()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
   const { newEvent, setNewEvent, result, dates } = props
 
-  const handleSubCategoryChange = e => setNewEvent({ ...newEvent, subCategory: e.target.value })
+  const handleSubCategoryChange = (e) =>
+    setNewEvent({ ...newEvent, subCategory: e.target.value })
 
-  const handleOriginChange = e => setNewEvent({ ...newEvent, origin: { ...newEvent.origin, name: e.target.value } })
+  const handleOriginChange = (e) =>
+    setNewEvent({
+      ...newEvent,
+      origin: { ...newEvent.origin, name: e.target.value },
+    })
 
-  const handleDestinationChange = e => setNewEvent({ ...newEvent, destination: { ...newEvent.destination, name: e.target.value } })
+  const handleDestinationChange = (e) =>
+    setNewEvent({
+      ...newEvent,
+      destination: { ...newEvent.destination, name: e.target.value },
+    })
 
-  const handleOriginAddressChange = address => setNewEvent({ ...newEvent, origin: { ...newEvent.origin, address, lat: null, lng: null } })
+  const handleOriginAddressChange = (address) =>
+    setNewEvent({
+      ...newEvent,
+      origin: { ...newEvent.origin, address, lat: null, lng: null },
+    })
 
-  const handleDestinationAddressChange = address => setNewEvent({ ...newEvent, destination: { ...newEvent.destination, address, lat: null, lng: null } })
+  const handleDestinationAddressChange = (address) =>
+    setNewEvent({
+      ...newEvent,
+      destination: { ...newEvent.destination, address, lat: null, lng: null },
+    })
 
-  const handleOriginAddressSelect = address => {
+  const handleOriginAddressSelect = (address) => {
     geocodeByAddress(address)
-      .then(results => getLatLng(results[0]))
-      .then(latLng => {
-        setNewEvent({ ...newEvent, origin: { ...newEvent.origin, address, lat: latLng.lat, lng: latLng.lng } })
+      .then((results) => getLatLng(results[0]))
+      .then((latLng) => {
+        setNewEvent({
+          ...newEvent,
+          origin: {
+            ...newEvent.origin,
+            address,
+            lat: latLng.lat,
+            lng: latLng.lng,
+          },
+        })
       })
   }
 
-  const handleDestinationAddressSelect = address => {
+  const handleDestinationAddressSelect = (address) => {
     geocodeByAddress(address)
-      .then(results => getLatLng(results[0]))
-      .then(latLng => {
-        setNewEvent({ ...newEvent, destination: { ...newEvent.destination, address, lat: latLng.lat, lng: latLng.lng } })
+      .then((results) => getLatLng(results[0]))
+      .then((latLng) => {
+        setNewEvent({
+          ...newEvent,
+          destination: {
+            ...newEvent.destination,
+            address,
+            lat: latLng.lat,
+            lng: latLng.lng,
+          },
+        })
       })
   }
 
-  const handleStartTimeChange = time => {
+  const handleStartTimeChange = (time) => {
     if (isAfter(time, newEvent.endTime)) {
       setNewEvent({ ...newEvent, startTime: time, endTime: time })
     } else {
@@ -82,7 +115,7 @@ export default props => {
     }
   }
 
-  const handleEndTimeChange = time => {
+  const handleEndTimeChange = (time) => {
     if (isAfter(newEvent.startTime, time)) {
       setNewEvent({ ...newEvent, startTime: time, endTime: time })
     } else {
@@ -90,22 +123,29 @@ export default props => {
     }
   }
 
-  const handleReservationChange = e => setNewEvent({ ...newEvent, reservation: e.target.checked })
+  const handleReservationChange = (e) =>
+    setNewEvent({ ...newEvent, reservation: e.target.checked })
 
   return (
     <>
-      <FormControl margin={matchesXS ? 'dense' : 'normal'} fullWidth={matchesXS} className={classes.select}>
+      <FormControl
+        margin={matchesXS ? 'dense' : 'normal'}
+        fullWidth={matchesXS}
+        className={classes.select}
+      >
         <TextField
           select
           label="Sub Category"
           value={newEvent.subCategory}
           onChange={handleSubCategoryChange}
         >
-          {transCategories.map(category => (
+          {transCategories.map((category) => (
             <MenuItem value={category.value} key={category.value}>
               <Grid container>
                 <Grid item>
-                  <ListItemIcon className={classes.icon}>{category.icon}</ListItemIcon>
+                  <ListItemIcon className={classes.icon}>
+                    {category.icon}
+                  </ListItemIcon>
                 </Grid>
                 <Grid item>
                   <Typography>{category.name}</Typography>
@@ -158,7 +198,12 @@ export default props => {
             onChange={handleOriginAddressChange}
             onSelect={handleOriginAddressSelect}
           >
-            {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
+            {({
+              getInputProps,
+              suggestions,
+              getSuggestionItemProps,
+              loading,
+            }) => (
               <div>
                 <TextField
                   margin={matchesXS ? 'dense' : 'normal'}
@@ -167,8 +212,13 @@ export default props => {
                   {...getInputProps({ placeholder: 'Search Places ...' })}
                 />
                 {loading && <div>Loading...</div>}
-                {suggestions.map(suggestion => (
-                  <List key={suggestion.placeId} component="nav" dense disablePadding>
+                {suggestions.map((suggestion) => (
+                  <List
+                    key={suggestion.placeId}
+                    component="nav"
+                    dense
+                    disablePadding
+                  >
                     <ListItem {...getSuggestionItemProps(suggestion, {})}>
                       <ListItemText primary={suggestion.description} />
                     </ListItem>
@@ -184,7 +234,12 @@ export default props => {
             onChange={handleDestinationAddressChange}
             onSelect={handleDestinationAddressSelect}
           >
-            {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
+            {({
+              getInputProps,
+              suggestions,
+              getSuggestionItemProps,
+              loading,
+            }) => (
               <div>
                 <TextField
                   margin={matchesXS ? 'dense' : 'normal'}
@@ -193,8 +248,13 @@ export default props => {
                   {...getInputProps({ placeholder: 'Search Places ...' })}
                 />
                 {loading && <div>Loading...</div>}
-                {suggestions.map(suggestion => (
-                  <List key={suggestion.placeId} component="nav" dense disablePadding>
+                {suggestions.map((suggestion) => (
+                  <List
+                    key={suggestion.placeId}
+                    component="nav"
+                    dense
+                    disablePadding
+                  >
                     <ListItem {...getSuggestionItemProps(suggestion, {})}>
                       <ListItemText primary={suggestion.description} />
                     </ListItem>
@@ -205,9 +265,7 @@ export default props => {
           </PlacesAutocomplete>
         </Grid>
       </Grid>
-      <FormHelperText error={result.error}>
-        {result.message}
-      </FormHelperText>
+      <FormHelperText error={result.error}>{result.message}</FormHelperText>
 
       <Grid
         container
@@ -250,7 +308,12 @@ export default props => {
 
         <Grid item md>
           <FormControlLabel
-            control={<Switch checked={newEvent.reservation} onChange={handleReservationChange} />}
+            control={
+              <Switch
+                checked={newEvent.reservation}
+                onChange={handleReservationChange}
+              />
+            }
             label="Reserved"
             labelPlacement="start"
             className={classes.formControlLabel}

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import router from "next/router";
-import { makeStyles } from "@material-ui/core/styles";
+import React, { useState, useEffect } from 'react'
+import router from 'next/router'
+import { makeStyles } from '@material-ui/core/styles'
 import {
   useScrollTrigger,
   AppBar,
@@ -12,33 +12,33 @@ import {
   IconButton,
   ListItemIcon,
   Tooltip,
-} from "@material-ui/core";
-import { AccountCircle, Settings, ExitToApp } from "@material-ui/icons";
-import Link from "../Link";
-import firebase from "../lib/firebase";
+} from '@material-ui/core'
+import { AccountCircle, Settings, ExitToApp } from '@material-ui/icons'
+import Link from '../Link'
+import firebase from '../lib/firebase'
 
 const ElevationScroll = (props) => {
-  const { children } = props;
+  const { children } = props
   const trigger = useScrollTrigger({
     disableHysteresis: true,
     threshold: 0,
-  });
+  })
 
   return React.cloneElement(children, {
     elevation: trigger ? 4 : 0,
-  });
-};
+  })
+}
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    width: "100%",
+    width: '100%',
     maxWidth: theme.breakpoints.values.lg,
-    margin: "auto",
+    margin: 'auto',
   },
   logo: {
     color: theme.palette.common.white,
-    "&:hover": {
-      textDecoration: "none",
+    '&:hover': {
+      textDecoration: 'none',
     },
   },
   icon: {
@@ -48,30 +48,43 @@ const useStyles = makeStyles((theme) => ({
   listItemIcon: {
     minWidth: 40,
   },
-}));
+}))
 
 export default (props) => {
-  const classes = useStyles();
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-  const user = firebase.auth().currentUser;
+  const classes = useStyles()
+  const [anchorEl, setAnchorEl] = useState(null)
+  const open = Boolean(anchorEl)
+  const user = firebase.auth().currentUser
 
   const handleSignOut = (e) => {
-    e.preventDefault;
-    firebase.auth().signOut();
-  };
+    e.preventDefault
+    firebase.auth().signOut()
+  }
 
   return (
     <>
       <ElevationScroll {...props}>
         <AppBar>
           <Toolbar className={classes.container}>
-            <Grid container direction="row" justify="space-between" alignItems="center">
-              <Typography variant="h6" component={Link} href="/" className={classes.logo}>
+            <Grid
+              container
+              direction="row"
+              justify="space-between"
+              alignItems="center"
+            >
+              <Typography
+                variant="h6"
+                component={Link}
+                href="/"
+                className={classes.logo}
+              >
                 Trip Planner
               </Typography>
-              <Tooltip title={user.email ? user.email : "Guest"}>
-                <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} className={classes.icon}>
+              <Tooltip title={user.email ? user.email : 'Guest'}>
+                <IconButton
+                  onClick={(e) => setAnchorEl(e.currentTarget)}
+                  className={classes.icon}
+                >
                   <AccountCircle />
                 </IconButton>
               </Tooltip>
@@ -85,18 +98,18 @@ export default (props) => {
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{
-          vertical: "top",
-          horizontal: "right",
+          vertical: 'top',
+          horizontal: 'right',
         }}
         keepMounted
         transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
+          vertical: 'top',
+          horizontal: 'right',
         }}
         open={open}
         onClose={() => setAnchorEl(null)}
       >
-        <MenuItem onClick={() => router.push("/setting")}>
+        <MenuItem onClick={() => router.push('/setting')}>
           <ListItemIcon className={classes.listItemIcon}>
             <Settings />
           </ListItemIcon>
@@ -110,5 +123,5 @@ export default (props) => {
         </MenuItem>
       </Menu>
     </>
-  );
-};
+  )
+}

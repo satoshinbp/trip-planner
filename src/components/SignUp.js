@@ -11,13 +11,13 @@ import Snackbar from '@material-ui/core/Snackbar'
 import Alert from '@material-ui/lab/Alert'
 import firebase from '../lib/firebase'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   paper: {
     margin: theme.spacing(8, 4),
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('xs')]: {
       margin: theme.spacing(5, 4),
     },
   },
@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default props => {
+export default (props) => {
   const classes = useStyles()
 
   const [email, setEmail] = useState('')
@@ -43,17 +43,20 @@ export default props => {
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
 
-  const handleSignUp = e => {
+  const handleSignUp = (e) => {
     e.preventDefault()
 
     if (password !== retypedPassword) {
       setMessage('Password mismatch.')
       setOpen(true)
     } else {
-      firebase.auth().createUserWithEmailAndPassword(email, password).catch(error => {
-        setMessage(error.message)
-        setOpen(true)
-      })
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, password)
+        .catch((error) => {
+          setMessage(error.message)
+          setOpen(true)
+        })
     }
   }
 
@@ -84,7 +87,7 @@ export default props => {
           label="Email Address"
           name="email"
           autoFocus
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <TextField
           variant="outlined"
@@ -95,7 +98,7 @@ export default props => {
           label="Password"
           type="password"
           id="password"
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
         <TextField
           variant="outlined"
@@ -106,7 +109,7 @@ export default props => {
           label="Re-type password"
           type="password"
           id="retyped password"
-          onChange={e => setRetypedPassword(e.target.value)}
+          onChange={(e) => setRetypedPassword(e.target.value)}
         />
         <Button
           type="submit"
@@ -126,7 +129,7 @@ export default props => {
           </Grid>
         </Grid>
       </form>
-      
+
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
         <Alert onClose={handleClose} severity="error">
           {message}

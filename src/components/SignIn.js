@@ -20,13 +20,13 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import Alert from '@material-ui/lab/Alert'
 import firebase, { googleAuthProvider } from '../lib/firebase'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   paper: {
     margin: theme.spacing(8, 4),
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down('xs')]: {
       margin: theme.spacing(5, 4),
     },
   },
@@ -66,7 +66,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-export default props => {
+export default (props) => {
   const classes = useStyles()
 
   const [email, setEmail] = useState('')
@@ -78,10 +78,12 @@ export default props => {
   const [success, setSuccess] = useState(undefined)
   const [message, setMessage] = useState('')
 
-  const handleEmailSignIn = e => {
+  const handleEmailSignIn = (e) => {
     e.preventDefault()
 
-    firebase.auth().signInWithEmailAndPassword(email, password)
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
       .then(() => {
         if (checked) {
           localStorage.email = email
@@ -89,31 +91,37 @@ export default props => {
           localStorage.checked = checked
         }
       })
-      .catch(error => {
+      .catch((error) => {
         setSuccess(false)
         setMessage(error.message)
         setSnackbarOpen(true)
       })
   }
 
-  const handleGoogleSignIn = e => {
+  const handleGoogleSignIn = (e) => {
     e.preventDefault()
 
-    firebase.auth().signInWithPopup(googleAuthProvider).catch(error => {
-      setSuccess(false)
-      setMessage(error.message)
-      setSnackbarOpen(true)
-    })
+    firebase
+      .auth()
+      .signInWithPopup(googleAuthProvider)
+      .catch((error) => {
+        setSuccess(false)
+        setMessage(error.message)
+        setSnackbarOpen(true)
+      })
   }
 
-  const handleAnonymousSignIn = e => {
+  const handleAnonymousSignIn = (e) => {
     e.preventDefault()
 
-    firebase.auth().signInAnonymously().catch(error => {
-      setSuccess(false)
-      setMessage(error.message)
-      setSnackbarOpen(true)
-    })
+    firebase
+      .auth()
+      .signInAnonymously()
+      .catch((error) => {
+        setSuccess(false)
+        setMessage(error.message)
+        setSnackbarOpen(true)
+      })
   }
 
   const handleClose = (e, reason) => {
@@ -130,17 +138,21 @@ export default props => {
   const resetPassword = () => {
     setBackdropOpen(true)
     setDialogOpen(false)
-    firebase.auth().sendPasswordResetEmail(email).then(() => {
-      setSuccess(true)
-      setMessage('Email sent.')
-      setBackdropOpen(false)
-      setSnackbarOpen(true)
-    }).catch(error => {
-      setSuccess(false)
-      setMessage(error.message)
-      setBackdropOpen(false)
-      setSnackbarOpen(true)
-    })
+    firebase
+      .auth()
+      .sendPasswordResetEmail(email)
+      .then(() => {
+        setSuccess(true)
+        setMessage('Email sent.')
+        setBackdropOpen(false)
+        setSnackbarOpen(true)
+      })
+      .catch((error) => {
+        setSuccess(false)
+        setMessage(error.message)
+        setBackdropOpen(false)
+        setSnackbarOpen(true)
+      })
   }
 
   useEffect(() => {
@@ -156,7 +168,9 @@ export default props => {
       <Avatar className={classes.avatar}>
         <LockOutlinedIcon />
       </Avatar>
-      <Typography component="h1" variant="h5">Sign in</Typography>
+      <Typography component="h1" variant="h5">
+        Sign in
+      </Typography>
 
       <form className={classes.form} noValidate>
         <TextField
@@ -168,7 +182,7 @@ export default props => {
           autoComplete="email"
           value={email}
           autoFocus
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <TextField
           variant="outlined"
@@ -179,7 +193,7 @@ export default props => {
           type="password"
           autoComplete="current-password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
         />
         <FormControlLabel
           control={
@@ -187,7 +201,7 @@ export default props => {
               value="remember"
               color="primary"
               checked={checked}
-              onChange={e => setChecked(e.target.checked)}
+              onChange={(e) => setChecked(e.target.checked)}
             />
           }
           label="Remember me"
@@ -256,16 +270,24 @@ export default props => {
             autoComplete="email"
             value={email}
             autoFocus
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">No</Button>
-          <Button onClick={resetPassword} color="primary" autoFocus>Yes</Button>
+          <Button onClick={handleClose} color="primary">
+            No
+          </Button>
+          <Button onClick={resetPassword} color="primary" autoFocus>
+            Yes
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleClose}>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleClose}
+      >
         <Alert onClose={handleClose} severity={success ? 'success' : 'error'}>
           {message}
         </Alert>

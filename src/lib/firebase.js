@@ -15,4 +15,6 @@ const firebaseConfig = {
 export const emailAuthProvider = firebase.auth.EmailAuthProvider
 export const googleAuthProvider = new firebase.auth.GoogleAuthProvider()
 
-export default !firebase.apps.length ? firebase.initializeApp(firebaseConfig) : firebase.app()
+export default !firebase.apps.length
+  ? firebase.initializeApp(firebaseConfig)
+  : firebase.app()

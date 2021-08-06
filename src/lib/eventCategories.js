@@ -12,20 +12,72 @@ import ShoppingCartIcon from '@material-ui/icons/ShoppingCart'
 import TheatersIcon from '@material-ui/icons/Theaters'
 
 export default [
-  { name: 'Tour', value: 'tour', icon: <FlagIcon color="primary" key="tour" /> },
-  { name: 'Restaurant', value: 'restaurant', icon: <RestaurantIcon color="primary" key="restaurant" /> },
-  { name: 'Shopping', value: 'shopping', icon: <ShoppingCartIcon color="primary" key="shopping" /> },
-  { name: 'Cinema', value: 'cinema', icon: <TheatersIcon color="primary" key="cinema" /> },
-  { name: 'Hotel', value: 'hotel', icon: <HotelIcon color="primary" key="hotel" /> },
-  { name: 'Transportation', value: 'transportation', icon: <DirectionsTransitIcon color="primary" key="transportation" /> },
+  {
+    name: 'Tour',
+    value: 'tour',
+    icon: <FlagIcon color="primary" key="tour" />,
+  },
+  {
+    name: 'Restaurant',
+    value: 'restaurant',
+    icon: <RestaurantIcon color="primary" key="restaurant" />,
+  },
+  {
+    name: 'Shopping',
+    value: 'shopping',
+    icon: <ShoppingCartIcon color="primary" key="shopping" />,
+  },
+  {
+    name: 'Cinema',
+    value: 'cinema',
+    icon: <TheatersIcon color="primary" key="cinema" />,
+  },
+  {
+    name: 'Hotel',
+    value: 'hotel',
+    icon: <HotelIcon color="primary" key="hotel" />,
+  },
+  {
+    name: 'Transportation',
+    value: 'transportation',
+    icon: <DirectionsTransitIcon color="primary" key="transportation" />,
+  },
 ]
 
 export const transCategories = [
-  { name: 'Walk', value: 'walk', icon: <DirectionsWalkIcon color="primary" key="walk" /> },
-  { name: 'Bike', value: 'bike', icon: <DirectionsBikeIcon color="primary" key="bike" /> },
-  { name: 'Car', value: 'car', icon: <DirectionsCarIcon color="primary" key="car" /> },
-  { name: 'Bus', value: 'bus', icon: <DirectionsBusIcon color="primary" key="bus" /> },
-  { name: 'Train', value: 'train', icon: <DirectionsTransitIcon color="primary" key="train" /> },
-  { name: 'Ferry', value: 'ferry', icon: <DirectionsBoatIcon color="primary" key="ferry" /> },
-  { name: 'Flight', value: 'flight', icon: <FlightIcon color="primary" key="flight" /> },
+  {
+    name: 'Walk',
+    value: 'walk',
+    icon: <DirectionsWalkIcon color="primary" key="walk" />,
+  },
+  {
+    name: 'Bike',
+    value: 'bike',
+    icon: <DirectionsBikeIcon color="primary" key="bike" />,
+  },
+  {
+    name: 'Car',
+    value: 'car',
+    icon: <DirectionsCarIcon color="primary" key="car" />,
+  },
+  {
+    name: 'Bus',
+    value: 'bus',
+    icon: <DirectionsBusIcon color="primary" key="bus" />,
+  },
+  {
+    name: 'Train',
+    value: 'train',
+    icon: <DirectionsTransitIcon color="primary" key="train" />,
+  },
+  {
+    name: 'Ferry',
+    value: 'ferry',
+    icon: <DirectionsBoatIcon color="primary" key="ferry" />,
+  },
+  {
+    name: 'Flight',
+    value: 'flight',
+    icon: <FlightIcon color="primary" key="flight" />,
+  },
 ]

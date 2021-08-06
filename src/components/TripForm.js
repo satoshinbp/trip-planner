@@ -15,7 +15,7 @@ import TextField from '@material-ui/core/TextField'
 import db from '../lib/db'
 import firebase from '../lib/firebase'
 
-export default props => {
+export default (props) => {
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
   const {
@@ -29,7 +29,13 @@ export default props => {
   } = props
 
   const def = {
-    newTrip: { title: '', startDate: new Date(), endDate: new Date(), location: '', note: '' },
+    newTrip: {
+      title: '',
+      startDate: new Date(),
+      endDate: new Date(),
+      location: '',
+      note: '',
+    },
     action: { name: '', id: '' },
     error: { title: false, message: '' },
   }
@@ -66,46 +72,60 @@ export default props => {
     if (title && startDate) {
       setIsLoading({ deep: false, shallow: true })
 
-      const tripData = { title, startDate, endDate: endDate ? endDate : startDate, location, note }
+      const tripData = {
+        title,
+        startDate,
+        endDate: endDate ? endDate : startDate,
+        location,
+        note,
+      }
 
       switch (action.name) {
         case 'add':
           setAction(def.action)
 
-          tripsRef.add(tripData).then(snapshot => {
+          tripsRef.add(tripData).then((snapshot) => {
             setTrips([...trips, { id: snapshot.id, ...tripData }])
             closeOutAction()
           })
           break
         case 'edit':
           setAction(def.action)
-          tripsRef.doc(action.id).update(tripData).then(() => {
-            const untouchedTrips = trips.filter(trip => trip.id !== action.id)
-            setTrips([...untouchedTrips, { id: action.id, ...tripData }])
-            closeOutAction()
-          })
+          tripsRef
+            .doc(action.id)
+            .update(tripData)
+            .then(() => {
+              const untouchedTrips = trips.filter(
+                (trip) => trip.id !== action.id
+              )
+              setTrips([...untouchedTrips, { id: action.id, ...tripData }])
+              closeOutAction()
+            })
           break
       }
     }
   }
 
-  const handleTitleChange = e => setNewTrip({ ...newTrip, title: e.target.value })
-  const handleStartDateChange = date => {
+  const handleTitleChange = (e) =>
+    setNewTrip({ ...newTrip, title: e.target.value })
+  const handleStartDateChange = (date) => {
     if (!newTrip.endDate || isAfter(date, newTrip.endDate)) {
       setNewTrip({ ...newTrip, startDate: date, endDate: date })
     } else {
       setNewTrip({ ...newTrip, startDate: date })
     }
   }
-  const handleEndDateChange = date => {
+  const handleEndDateChange = (date) => {
     if (isAfter(newTrip.startDate, date)) {
       setNewTrip({ ...newTrip, startDate: date, endDate: date })
     } else {
       setNewTrip({ ...newTrip, endDate: date })
     }
   }
-  const handleLocationChange = e => setNewTrip({ ...newTrip, location: e.target.value })
-  const handleNoteChange = e => setNewTrip({ ...newTrip, note: e.target.value })
+  const handleLocationChange = (e) =>
+    setNewTrip({ ...newTrip, location: e.target.value })
+  const handleNoteChange = (e) =>
+    setNewTrip({ ...newTrip, note: e.target.value })
 
   useEffect(() => {
     if (error.title) {
@@ -128,7 +148,11 @@ export default props => {
             fullWidth
             onChange={handleTitleChange}
           />
-          <Grid container direction={matchesXS ? 'column' : 'row'} spacing={matchesXS ? undefined : 2}>
+          <Grid
+            container
+            direction={matchesXS ? 'column' : 'row'}
+            spacing={matchesXS ? undefined : 2}
+          >
             <Grid item md>
               <DatePicker
                 margin={matchesXS ? 'dense' : 'normal'}
@@ -172,14 +196,20 @@ export default props => {
             rows={3}
             onChange={handleNoteChange}
           />
-          <FormHelperText error={error.title || error.date}>{error.message}</FormHelperText>
+          <FormHelperText error={error.title || error.date}>
+            {error.message}
+          </FormHelperText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={clearState} color="primary">Cancel</Button>
+          <Button onClick={clearState} color="primary">
+            Cancel
+          </Button>
           <Button variant="contained" onClick={handleAction} color="primary">
-            {action.name === 'add' ? 'Add'
-              : action.name === 'edit' ? 'Save'
-                : null}
+            {action.name === 'add'
+              ? 'Add'
+              : action.name === 'edit'
+              ? 'Save'
+              : null}
           </Button>
         </DialogActions>
       </Dialog>
