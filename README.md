@@ -47,22 +47,30 @@ Users can also login as a guest user to test basic features of Trip Planner, but
 Cloud Firestore is used to store user iteneraries, which is a NoSQL, document-oriented database provided by Firebase.
 
 ```
-project
-│   README.md
-│   file001.txt    
-│
-└───folder1
-│   │   file011.txt
-│   │   file012.txt
-│   │
-│   └───subfolder1
-│       │   file111.txt
-│       │   file112.txt
-│       │   ...
-│   
-└───folder2
-    │   file021.txt
-    │   file022.txt
+users/
+    {user1}/
+        trips/
+            {trip1}/
+                title: "Business Trip"
+                location: "Nanaimo"
+                startDate: May 21, 2021 at 0:00:00 AM UTC-8
+                endDate: May 25, 2021 at 0:00:00 AM UTC-8
+                events/
+                    {event1}/
+                        category: "transportation",
+                        startTime: May 21, 2021 at 8:00:00 AM UTC-8
+                        endTime: May 21, 2021 at 10:00:00 AM UTC-8
+                        note: ""
+                        ...
+                    {event2}/
+                        ...
+                    ...
+            {trip2}/
+                ...
+            ...
+    {user2}/
+        ...
+    ...
 ```
 
 ### Styling
