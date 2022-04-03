@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import {
-  format,
-  isAfter,
-  addDays,
-  isSameDay,
-  startOfDay,
-  isWithinInterval,
-} from 'date-fns'
+import { format, isAfter, addDays, isSameDay, startOfDay, isWithinInterval } from 'date-fns'
 import { makeStyles, useTheme } from '@material-ui/core/styles'
 import {
   useMediaQuery,
@@ -155,12 +148,7 @@ export default withAuth((props) => {
   const handleLoadingClose = () => setIsLoading({ deep: false, shallow: false })
 
   const TripSummary = () => (
-    <Grid
-      container
-      justify="space-between"
-      alignItems="flex-end"
-      className={classes.title}
-    >
+    <Grid container justify="space-between" alignItems="flex-end" className={classes.title}>
       <Grid item>
         <Typography variant="h6" component="span" classes>
           {trip.title}
@@ -171,8 +159,7 @@ export default withAuth((props) => {
           </Typography>
         )}
         <Typography variant="subtitle1" className={classes.dates}>
-          {format(trip.startDate, 'yyyy/MM/dd')} -{' '}
-          {format(trip.endDate, 'yyyy/MM/dd')}
+          {format(trip.startDate, 'yyyy/MM/dd')} - {format(trip.endDate, 'yyyy/MM/dd')}
         </Typography>
       </Grid>
       <Grid item>
@@ -187,11 +174,7 @@ export default withAuth((props) => {
           </Button>
         </Hidden>
         <Hidden smUp>
-          <Fab
-            color="primary"
-            className={classes.fab}
-            onClick={() => handleAddEvent(dates[0])}
-          >
+          <Fab color="primary" className={classes.fab} onClick={() => handleAddEvent(dates[0])}>
             <Add size="small" className={classes.iconBtn} />
           </Fab>
         </Hidden>
@@ -206,52 +189,32 @@ export default withAuth((props) => {
         {i !== 0 && <Divider className={classes.divider} />}
         <Grid item container className={classes.link} alignItems="center">
           {inTripDates ? (
-            <Grid
-              item
-              className={classes.time}
-              onClick={handleEditEvent(event.id)}
-            >
+            <Grid item className={classes.time} onClick={handleEditEvent(event.id)}>
               {event.sortTime === event.endTime ? (
-                <Typography variant="body1">
-                  &nbsp;- {format(event.endTime, 'HH:mm')}
-                </Typography>
+                <Typography variant="body1">&nbsp;- {format(event.endTime, 'HH:mm')}</Typography>
               ) : !isSameDay(event.startTime, event.endTime) ? (
-                <Typography variant="body1">
-                  {format(event.startTime, 'HH:mm')} -
-                </Typography>
+                <Typography variant="body1">{format(event.startTime, 'HH:mm')} -</Typography>
               ) : !matchesXS ? (
                 <Typography variant="body1">
-                  {format(event.startTime, 'HH:mm')} -{' '}
-                  {format(event.endTime, 'HH:mm')}
+                  {format(event.startTime, 'HH:mm')} - {format(event.endTime, 'HH:mm')}
                 </Typography>
               ) : (
                 <>
-                  <Typography variant="body1">
-                    {format(event.startTime, 'HH:mm')}
-                  </Typography>
-                  <Typography variant="body2">
-                    &nbsp;- {format(event.endTime, 'HH:mm')}
-                  </Typography>
+                  <Typography variant="body1">{format(event.startTime, 'HH:mm')}</Typography>
+                  <Typography variant="body2">&nbsp;- {format(event.endTime, 'HH:mm')}</Typography>
                 </>
               )}
             </Grid>
           ) : (
-            <Grid
-              item
-              className={classes.time}
-              onClick={handleEditEvent(event.id)}
-            >
+            <Grid item className={classes.time} onClick={handleEditEvent(event.id)}>
               {matchesXS ? (
                 <>
-                  <Typography variant="body1">
-                    {format(event.startTime, 'MM/dd')}
-                  </Typography>
-                  {event.endTime &&
-                    !isSameDay(event.startTime, event.endTime) && (
-                      <Typography variant="body2">
-                        &nbsp;- {format(event.endTime, 'MM/dd')}
-                      </Typography>
-                    )}
+                  <Typography variant="body1">{format(event.startTime, 'MM/dd')}</Typography>
+                  {event.endTime && !isSameDay(event.startTime, event.endTime) && (
+                    <Typography variant="body2">
+                      &nbsp;- {format(event.endTime, 'MM/dd')}
+                    </Typography>
+                  )}
                 </>
               ) : (
                 <Typography variant="body1">
@@ -263,18 +226,11 @@ export default withAuth((props) => {
               )}
             </Grid>
           )}
-          <ListItemIcon
-            className={classes.icon}
-            onClick={handleEditEvent(event.id)}
-          >
+          <ListItemIcon className={classes.icon} onClick={handleEditEvent(event.id)}>
             {event.category !== 'transportation'
-              ? categories.map(
-                  (category) =>
-                    category.value === event.category && category.icon
-                )
+              ? categories.map((category) => category.value === event.category && category.icon)
               : transCategories.map(
-                  (category) =>
-                    category.value === event.subCategory && category.icon
+                  (category) => category.value === event.subCategory && category.icon
                 )}
           </ListItemIcon>
           <Grid item xs onClick={handleEditEvent(event.id)}>
@@ -298,9 +254,7 @@ export default withAuth((props) => {
             edge="end"
             color="secondary"
             disabled={
-              event.location
-                ? !event.location.lat
-                : !event.origin.lat && !event.destination.lat
+              event.location ? !event.location.lat : !event.origin.lat && !event.destination.lat
             }
             onClick={() => {
               if (event.category !== 'transportation') {
@@ -331,23 +285,18 @@ export default withAuth((props) => {
         !isWithinInterval(event.startTime, {
           start: datesStart,
           end: datesEnd,
-        }) &&
-        !isWithinInterval(event.endTime, { start: datesStart, end: datesEnd })
+        }) && !isWithinInterval(event.endTime, { start: datesStart, end: datesEnd })
     )
 
     return (
       <div className={classes.accordionRoot}>
         {dates.map((date) => {
-          const thisDateEvents = sortedEvents.filter((event) =>
-            isSameDay(event.sortTime, date)
-          )
+          const thisDateEvents = sortedEvents.filter((event) => isSameDay(event.sortTime, date))
 
           return (
             <Accordion key={date} defaultExpanded={thisDateEvents.length !== 0}>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography className={classes.heading}>
-                  {format(date, 'yyyy/MM/dd')}
-                </Typography>
+                <Typography className={classes.heading}>{format(date, 'yyyy/MM/dd')}</Typography>
               </AccordionSummary>
               <Divider className={classes.dividerTop} />
               <AccordionDetails>
@@ -359,11 +308,7 @@ export default withAuth((props) => {
               </AccordionDetails>
               <Divider />
               <AccordionActions>
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={() => handleAddEvent(date)}
-                >
+                <Button size="small" color="primary" onClick={() => handleAddEvent(date)}>
                   Add a Event
                 </Button>
               </AccordionActions>
@@ -396,11 +341,7 @@ export default withAuth((props) => {
     setIsLoading({ deep: true, shallow: false })
 
     const user = firebase.auth().currentUser
-    const tripRef = db
-      .collection('users')
-      .doc(user.uid)
-      .collection('trips')
-      .doc(tid)
+    const tripRef = db.collection('users').doc(user.uid).collection('trips').doc(tid)
     const eventsRef = db
       .collection('users')
       .doc(user.uid)
@@ -434,9 +375,7 @@ export default withAuth((props) => {
               id: childSnapshot.id,
               ...childSnapshot.data(),
               startTime: childSnapshot.data().startTime.toDate(),
-              endTime: childSnapshot.data().endTime
-                ? childSnapshot.data().endTime.toDate()
-                : null,
+              endTime: childSnapshot.data().endTime ? childSnapshot.data().endTime.toDate() : null,
               checkInTime: childSnapshot.data().checkInTime
                 ? childSnapshot.data().checkInTime.toDate()
                 : null,
@@ -467,13 +406,9 @@ export default withAuth((props) => {
       sortTime: event.startTime,
     }))
     const eventToBeSortedByEndTime = eventsWithOrder
-      .filter(
-        (event) => event.endTime && !isSameDay(event.startTime, event.endTime)
-      )
+      .filter((event) => event.endTime && !isSameDay(event.startTime, event.endTime))
       .map((event) => ({ ...event, sortTime: event.endTime }))
-    const eventsData = eventToBeSortedByStartTime.concat(
-      eventToBeSortedByEndTime
-    )
+    const eventsData = eventToBeSortedByStartTime.concat(eventToBeSortedByEndTime)
     setSortedEvents(
       eventsData.sort((a, b) => {
         if (isAfter(b.sortTime, a.sortTime)) return -1
@@ -552,11 +487,7 @@ export default withAuth((props) => {
         setAction={setAction}
       />
 
-      <Backdrop
-        className={classes.backdrop}
-        open={isLoading.shallow}
-        onClick={handleLoadingClose}
-      >
+      <Backdrop className={classes.backdrop} open={isLoading.shallow} onClick={handleLoadingClose}>
         <CircularProgress color="inherit" />
       </Backdrop>
 
