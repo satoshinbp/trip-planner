@@ -21,7 +21,7 @@ import {
   CircularProgress,
   SwipeableDrawer,
 } from '@material-ui/core'
-import { Add, Map, Room, ExpandMore, DragHandle } from '@material-ui/icons'
+import { Add, Room, ExpandMore, DragHandle } from '@material-ui/icons'
 import withAuth from '../../../src/withAuth'
 import LoadingPage from '../../../src/components/LoadingPage'
 import Header from '../../../src/components/Header'
@@ -114,7 +114,6 @@ export default withAuth((props) => {
   const classes = useStyles()
   const theme = useTheme()
   const matchesXS = useMediaQuery(theme.breakpoints.down('xs'))
-  const matchesSM = useMediaQuery(theme.breakpoints.down('sm'))
   const router = useRouter()
   const { tid } = router.query
 
@@ -182,100 +181,87 @@ export default withAuth((props) => {
     </Grid>
   )
 
-  const EventRow = (props) => {
-    const { event, i, inTripDates } = props
-    return (
-      <>
-        {i !== 0 && <Divider className={classes.divider} />}
-        <Grid item container className={classes.link} alignItems="center">
-          {inTripDates ? (
-            <Grid item className={classes.time} onClick={handleEditEvent(event.id)}>
-              {event.sortTime === event.endTime ? (
-                <Typography variant="body1">&nbsp;- {format(event.endTime, 'HH:mm')}</Typography>
-              ) : !isSameDay(event.startTime, event.endTime) ? (
-                <Typography variant="body1">{format(event.startTime, 'HH:mm')} -</Typography>
-              ) : !matchesXS ? (
-                <Typography variant="body1">
-                  {format(event.startTime, 'HH:mm')} - {format(event.endTime, 'HH:mm')}
-                </Typography>
-              ) : (
-                <>
-                  <Typography variant="body1">{format(event.startTime, 'HH:mm')}</Typography>
-                  <Typography variant="body2">&nbsp;- {format(event.endTime, 'HH:mm')}</Typography>
-                </>
-              )}
-            </Grid>
-          ) : (
-            <Grid item className={classes.time} onClick={handleEditEvent(event.id)}>
-              {matchesXS ? (
-                <>
-                  <Typography variant="body1">{format(event.startTime, 'MM/dd')}</Typography>
-                  {event.endTime && !isSameDay(event.startTime, event.endTime) && (
-                    <Typography variant="body2">
-                      &nbsp;- {format(event.endTime, 'MM/dd')}
-                    </Typography>
-                  )}
-                </>
-              ) : (
-                <Typography variant="body1">
-                  {format(event.startTime, 'MM/dd')}
-                  {event.endTime &&
-                    !isSameDay(event.startTime, event.endTime) &&
-                    ` - ${format(event.endTime, 'MM/dd')}`}
-                </Typography>
-              )}
-            </Grid>
-          )}
-          <ListItemIcon className={classes.icon} onClick={handleEditEvent(event.id)}>
-            {event.category !== 'transportation'
-              ? categories.map((category) => category.value === event.category && category.icon)
-              : transCategories.map(
-                  (category) => category.value === event.subCategory && category.icon
-                )}
-          </ListItemIcon>
-          <Grid item xs onClick={handleEditEvent(event.id)}>
-            {event.category === 'transportation' ? (
+  const EventRow = ({ event, i, inTripDates }) => (
+    <>
+      {i !== 0 && <Divider className={classes.divider} />}
+      <Grid item container className={classes.link} alignItems="center">
+        {inTripDates ? (
+          <Grid item className={classes.time} onClick={handleEditEvent(event.id)}>
+            {event.sortTime === event.endTime ? (
+              <Typography variant="body1">&nbsp;- {format(event.endTime, 'HH:mm')}</Typography>
+            ) : !isSameDay(event.startTime, event.endTime) ? (
+              <Typography variant="body1">{format(event.startTime, 'HH:mm')} -</Typography>
+            ) : !matchesXS ? (
               <Typography variant="body1">
-                {event.origin.name} → {event.destination.name}
-              </Typography>
-            ) : event.category === 'hotel' ? (
-              <Typography variant="body1">
-                {event.name}
-                {!matchesXS &&
-                  (event.sortTime === event.startTime
-                    ? ` (check-in: ${format(event.checkInTime, 'HH:mm')} -)`
-                    : ` (check-out: - ${format(event.checkOutTime, 'HH:mm')})`)}
+                {format(event.startTime, 'HH:mm')} - {format(event.endTime, 'HH:mm')}
               </Typography>
             ) : (
-              <Typography variant="body1">{event.name}</Typography>
+              <>
+                <Typography variant="body1">{format(event.startTime, 'HH:mm')}</Typography>
+                <Typography variant="body2">&nbsp;- {format(event.endTime, 'HH:mm')}</Typography>
+              </>
             )}
           </Grid>
-          <IconButton
-            edge="end"
-            color="secondary"
-            disabled={
-              event.location ? !event.location.lat : !event.origin.lat && !event.destination.lat
-            }
-            onClick={() => {
-              if (event.category !== 'transportation') {
-                setMapCenter({
-                  lat: event.location.lat,
-                  lng: event.location.lng,
-                })
-              } else {
-                setMapCenter({ lat: event.origin.lat, lng: event.origin.lng })
-              }
-              setMapOpen(true)
-            }}
-            className={classes.mapIcon}
-          >
-            <Room />
-            <Typography>{event.order + 1}</Typography>
-          </IconButton>
+        ) : (
+          <Grid item className={classes.time} onClick={handleEditEvent(event.id)}>
+            {matchesXS ? (
+              <>
+                <Typography variant="body1">{format(event.startTime, 'MM/dd')}</Typography>
+                {event.endTime && !isSameDay(event.startTime, event.endTime) && (
+                  <Typography variant="body2">&nbsp;- {format(event.endTime, 'MM/dd')}</Typography>
+                )}
+              </>
+            ) : (
+              <Typography variant="body1">
+                {format(event.startTime, 'MM/dd')}
+                {event.endTime &&
+                  !isSameDay(event.startTime, event.endTime) &&
+                  ` - ${format(event.endTime, 'MM/dd')}`}
+              </Typography>
+            )}
+          </Grid>
+        )}
+        <ListItemIcon className={classes.icon} onClick={handleEditEvent(event.id)}>
+          {event.category !== 'transportation'
+            ? categories.map((category) => category.value === event.category && category.icon)
+            : transCategories.map(
+                (category) => category.value === event.subCategory && category.icon
+              )}
+        </ListItemIcon>
+        <Grid item xs onClick={handleEditEvent(event.id)}>
+          {event.category === 'transportation' ? (
+            <Typography variant="body1">
+              {event.origin.name} → {event.destination.name}
+            </Typography>
+          ) : (
+            <Typography variant="body1">{event.name}</Typography>
+          )}
         </Grid>
-      </>
-    )
-  }
+        <IconButton
+          edge="end"
+          color="secondary"
+          disabled={
+            event.location ? !event.location.lat : !event.origin.lat && !event.destination.lat
+          }
+          onClick={() => {
+            if (event.category !== 'transportation') {
+              setMapCenter({
+                lat: event.location.lat,
+                lng: event.location.lng,
+              })
+            } else {
+              setMapCenter({ lat: event.origin.lat, lng: event.origin.lng })
+            }
+            setMapOpen(true)
+          }}
+          className={classes.mapIcon}
+        >
+          <Room />
+          <Typography>{event.order + 1}</Typography>
+        </IconButton>
+      </Grid>
+    </>
+  )
 
   const EventAccordions = () => {
     const datesStart = dates[0]
